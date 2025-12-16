@@ -96,10 +96,6 @@ ai-usage-monitor/
 ├── public/
 │   └── icons/
 ├── tests/
-├── .github/
-│   └── workflows/
-│       ├── ci.yml
-│       └── release.yml
 ├── docs/
 ├── package.json
 ├── tsconfig.json

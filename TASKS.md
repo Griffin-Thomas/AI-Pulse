@@ -3,11 +3,11 @@
 ## Phase 1: Core Foundation (Claude Support)
 
 ### 1.1 Project Setup
-- [ ] Initialize Tauri v2 project with React + TypeScript template
-- [ ] Configure Tailwind CSS and shadcn/ui
-- [ ] Set up ESLint, Prettier, TypeScript strict mode
-- [ ] Configure Tauri plugins: http, store, stronghold, notification, tray
-- [ ] Create project structure (src/components, src/hooks, src/lib, src-tauri/src)
+- [x] Initialize Tauri v2 project with React + TypeScript template
+- [x] Configure Tailwind CSS and shadcn/ui
+- [x] Set up ESLint, Prettier, TypeScript strict mode
+- [x] Configure Tauri plugins: http, store, stronghold, notification, tray
+- [x] Create project structure (src/components, src/hooks, src/lib, src-tauri/src)
 
 ### 1.2 Credential Management
 - [ ] Create `CredentialService` Rust module using Stronghold
@@ -25,18 +25,18 @@
 
 ### 1.4 System Tray Implementation
 - [ ] Create tray icon with dynamic percentage display
-- [ ] Implement tray menu: Show Dashboard, Refresh, Settings, Quit
-- [ ] Add color-coded icon states (green/yellow/red based on usage)
-- [ ] Handle tray click events (show/hide main window)
+- [x] Implement tray menu: Show Dashboard, Refresh, Settings, Quit
+- [ ] Add colour-coded icon states (green/yellow/red based on usage)
+- [x] Handle tray click events (show/hide main window)
 - [ ] Implement tray tooltip with usage summary
 
 ### 1.5 Dashboard UI
-- [ ] Create main dashboard layout with usage cards
-- [ ] Implement circular progress rings (5-hour + 7-day limits)
-- [ ] Add countdown timers to limit resets
+- [x] Create main dashboard layout with usage cards
+- [x] Implement circular progress rings (5-hour + 7-day limits)
+- [x] Add countdown timers to limit resets
 - [ ] Show detailed breakdown (Opus, Sonnet, OAuth apps)
-- [ ] Add manual refresh button with debounce
-- [ ] Implement loading and error states
+- [x] Add manual refresh button with debounce
+- [x] Implement loading and error states
 
 ### 1.6 Settings UI
 - [ ] Create settings window/modal
