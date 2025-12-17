@@ -1,73 +1,107 @@
-# React + TypeScript + Vite
+# AI Usage Monitor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A cross-platform desktop application for monitoring AI service usage quotas (Claude, OpenAI Codex).
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Cross-platform** - Windows, macOS, Linux
+- **Multi-provider** - Claude + OpenAI Codex (extensible)
+- **System tray** - Quick access from menu bar
+- **Usage analytics** - Historical tracking and trends
+- **Notifications** - Alerts when approaching limits
+- **Offline support** - Cached state, graceful degradation
 
-## React Compiler
+## Preview
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+![Interface](docs/assets/GUI.png)
 
-## Expanding the ESLint configuration
+## Quick Start
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- [Node.js](https://nodejs.org/) 18+
+- [Rust](https://rustup.rs/) toolchain
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# Install Rust (if not installed)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Run the App
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# Install dependencies
+npm install
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start development server
+npm run tauri dev
 ```
+
+### Configure Credentials
+
+1. Click the **Settings** icon (gear) in the app header
+2. Enter your Claude credentials:
+   - **Organization ID**: Found in your Claude.ai URL (`claude.ai/settings/organization/[org-id]`)
+   - **Session Key**: Found in browser DevTools → Application → Cookies → `sessionKey`
+3. Click **Save Credentials**
+4. Your usage data will be fetched automatically
+
+## Tech Stack
+
+- **Tauri v2** - Cross-platform framework (Rust backend)
+- **React 19 + TypeScript** - Frontend UI
+- **shadcn/ui + Tailwind CSS v4** - Components and styling
+- **Zustand** - State management
+
+## Development
+
+### Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Run in development (with hot reload)
+npm run tauri dev
+
+# Build frontend only
+npm run build
+
+# Check Rust compilation
+cargo check --manifest-path src-tauri/Cargo.toml
+
+# Build for production
+npm run tauri build
+```
+
+### Project Structure
+
+```
+src/                    # React frontend
+├── components/         # UI components
+├── hooks/              # Custom React hooks
+└── lib/                # Utilities and Tauri bindings
+
+src-tauri/src/          # Rust backend
+├── commands/           # Tauri command handlers
+├── providers/          # API adapters (Claude, Codex)
+└── services/           # Business logic (credentials, settings)
+```
+
+### Getting Claude Credentials
+
+1. Log in to [claude.ai](https://claude.ai)
+2. Navigate to Settings → Organization
+3. Copy the org ID from the URL
+4. Open DevTools (F12) → Application → Cookies → claude.ai
+5. Copy the `sessionKey` cookie value
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [API Integration](docs/api-integration.md)
+- [Data Models](docs/data-models.md)
+
+## License
+
+MIT

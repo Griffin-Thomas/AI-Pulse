@@ -1,7 +1,18 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager,
+    Emitter, Manager,
+};
+
+mod commands;
+mod error;
+mod models;
+mod providers;
+mod services;
+
+use commands::{
+    delete_credentials, fetch_usage, get_credentials, get_settings, has_credentials,
+    save_credentials, save_settings, validate_credentials,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -10,6 +21,19 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_notification::init())
+        .invoke_handler(tauri::generate_handler![
+            // Credential commands
+            get_credentials,
+            save_credentials,
+            delete_credentials,
+            has_credentials,
+            // Settings commands
+            get_settings,
+            save_settings,
+            // Usage commands
+            fetch_usage,
+            validate_credentials,
+        ])
         .setup(|app| {
             // Set up logging in debug mode
             if cfg!(debug_assertions) {
@@ -28,7 +52,7 @@ pub fn run() {
 
             let _tray = TrayIconBuilder::new()
                 .menu(&menu)
-                .menu_on_left_click(false)
+                .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "quit" => {
                         app.exit(0);
@@ -40,8 +64,10 @@ pub fn run() {
                         }
                     }
                     "refresh" => {
-                        // TODO: Emit refresh event to frontend
-                        log::info!("Refresh triggered from tray");
+                        // Emit refresh event to frontend
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.emit("tray-refresh", ());
+                        }
                     }
                     _ => {}
                 })

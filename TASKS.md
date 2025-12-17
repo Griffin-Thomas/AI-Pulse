@@ -10,18 +10,18 @@
 - [x] Create project structure (src/components, src/hooks, src/lib, src-tauri/src)
 
 ### 1.2 Credential Management
-- [ ] Create `CredentialService` Rust module using Stronghold
-- [ ] Implement secure storage for Claude org ID and session key
-- [ ] Create settings UI for credential input
-- [ ] Add validation for credential format
-- [ ] Implement credential update/delete functionality
+- [x] Create `CredentialService` Rust module using Store plugin
+- [x] Implement secure storage for Claude org ID and session key
+- [x] Create settings UI for credential input
+- [x] Add validation for credential format
+- [x] Implement credential update/delete functionality
 
 ### 1.3 Claude API Integration
-- [ ] Create `ClaudeAdapter` trait/struct in Rust
-- [ ] Implement HTTP client with browser-like headers (Cloudflare bypass)
-- [ ] Parse usage response into typed structs
-- [ ] Handle error cases: 401 (expired), 403 (blocked), 429 (rate limit)
-- [ ] Expose to frontend via Tauri commands
+- [x] Create `ClaudeAdapter` trait/struct in Rust
+- [x] Implement HTTP client with browser-like headers (Cloudflare bypass)
+- [x] Parse usage response into typed structs
+- [x] Handle error cases: 401 (expired), 403 (blocked), 429 (rate limit)
+- [x] Expose to frontend via Tauri commands
 
 ### 1.4 System Tray Implementation
 - [ ] Create tray icon with dynamic percentage display
@@ -39,8 +39,8 @@
 - [x] Implement loading and error states
 
 ### 1.6 Settings UI
-- [ ] Create settings window/modal
-- [ ] Provider configuration section (Claude credentials)
+- [x] Create settings window/modal
+- [x] Provider configuration section (Claude credentials)
 - [ ] Refresh interval selector (1/3/5/10 min or adaptive)
 - [ ] Display mode options (icon only, percentage, combined)
 - [ ] Language selector (EN, JA, ZH-CN, ZH-TW)

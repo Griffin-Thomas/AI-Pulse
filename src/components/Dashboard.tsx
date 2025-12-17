@@ -2,6 +2,7 @@ import { RefreshCw, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UsageCard } from "@/components/UsageCard";
 import { useUsageStore } from "@/lib/store";
+import { useUsage } from "@/hooks/useUsage";
 import type { ProviderId } from "@/lib/types";
 
 interface DashboardProps {
@@ -11,16 +12,12 @@ interface DashboardProps {
 
 export function Dashboard({ provider = "claude", onSettingsClick }: DashboardProps) {
   const { usage, isLoading, error, lastRefresh } = useUsageStore();
+  const { refresh } = useUsage(provider);
 
   const currentUsage = usage[provider];
   const currentLoading = isLoading[provider];
   const currentError = error[provider];
   const currentLastRefresh = lastRefresh[provider];
-
-  const handleRefresh = () => {
-    // TODO: Implement refresh via Tauri command
-    console.log("Refresh clicked");
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -31,11 +28,10 @@ export function Dashboard({ provider = "claude", onSettingsClick }: DashboardPro
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleRefresh}
+            onClick={refresh}
             disabled={currentLoading}
-            className={currentLoading ? "animate-spin" : ""}
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${currentLoading ? "animate-spin" : ""}`} />
           </Button>
           <Button variant="ghost" size="icon" onClick={onSettingsClick}>
             <Settings className="h-4 w-4" />
@@ -51,6 +47,15 @@ export function Dashboard({ provider = "claude", onSettingsClick }: DashboardPro
           </div>
         )}
 
+        {currentLoading && !currentUsage && (
+          <div className="flex items-center justify-center h-64">
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <RefreshCw className="h-8 w-8 animate-spin" />
+              <p>Loading usage data...</p>
+            </div>
+          </div>
+        )}
+
         {currentUsage ? (
           <div className="grid gap-4">
             {currentUsage.limits.map((limit) => (
@@ -58,10 +63,12 @@ export function Dashboard({ provider = "claude", onSettingsClick }: DashboardPro
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-            <p>No usage data available</p>
-            <p className="text-sm">Configure your credentials in Settings</p>
-          </div>
+          !currentLoading && (
+            <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+              <p>No usage data available</p>
+              <p className="text-sm">Configure your credentials in Settings</p>
+            </div>
+          )
         )}
       </main>
 
