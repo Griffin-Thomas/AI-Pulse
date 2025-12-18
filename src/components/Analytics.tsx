@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   LineChart,
   Line,
@@ -65,7 +65,7 @@ export function Analytics({ provider = "claude" }: AnalyticsProps) {
   }, [timeRange]);
 
   // Load data
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -108,11 +108,11 @@ export function Analytics({ provider = "claude" }: AnalyticsProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [provider, dateRange]);
 
   useEffect(() => {
     loadData();
-  }, [provider, timeRange]);
+  }, [loadData]);
 
   // Prepare chart data
   const chartData = useMemo(() => {
