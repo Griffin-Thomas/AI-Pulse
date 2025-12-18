@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, Save, Trash2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { Button } from "@/components/ui/button";
@@ -54,15 +54,7 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
   const [launchAtStartup, setLaunchAtStartup] = useState(false);
   const [isTogglingAutostart, setIsTogglingAutostart] = useState(false);
 
-  // Load existing credentials and settings
-  useEffect(() => {
-    if (isOpen) {
-      loadCredentials();
-      loadSettings();
-    }
-  }, [isOpen]);
-
-  const loadCredentials = async () => {
+  const loadCredentials = useCallback(async () => {
     try {
       const creds = await getCredentials("claude");
       if (creds) {
@@ -77,9 +69,9 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
     } catch (err) {
       console.error("Failed to load credentials:", err);
     }
-  };
+  }, []);
 
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       const loadedSettings = await getSettings();
       setSettings(loadedSettings);
@@ -97,7 +89,15 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
     } catch (err) {
       console.error("Failed to load settings:", err);
     }
-  };
+  }, [setSettings]);
+
+  // Load existing credentials and settings
+  useEffect(() => {
+    if (isOpen) {
+      loadCredentials();
+      loadSettings();
+    }
+  }, [isOpen, loadCredentials, loadSettings]);
 
   const handleAutoStartToggle = async () => {
     setIsTogglingAutostart(true);
