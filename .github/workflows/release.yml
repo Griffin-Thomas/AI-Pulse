@@ -83,6 +83,7 @@ jobs:
         run: npm ci
 
       - name: Debug - Check if signing key is set
+        shell: bash
         run: |
           if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
             echo "TAURI_SIGNING_PRIVATE_KEY is set (length: ${#TAURI_SIGNING_PRIVATE_KEY})"
