@@ -42,7 +42,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlGMDg2ODhGMTVDODlGODQKUldTRW44Z1ZqMmdJbisraEJrenlZMVMzRCtTOU5BaTUyS0xOM21JWGN2Y1d5MUVXeHZ1SHBxVVgK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDk4QTE4NzQ2QTIxNTFFODkKUldTSkhoV2lSb2VobUNMZmNhaEpVTG41dDUyamNrL1JyU3E2UXFrUUNlcFJDOHNmWmdIWFFUdWwK",
       "endpoints": [
         "https://github.com/Griffin-Thomas/AI-Pulse/releases/latest/download/latest.json"
       ] 
