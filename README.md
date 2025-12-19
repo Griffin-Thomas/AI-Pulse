@@ -40,22 +40,7 @@ Download and run the `.exe` installer from [Releases](https://github.com/Griffin
 
 Download the `.AppImage` from [Releases](https://github.com/Griffin-Thomas/AI-Pulse/releases), make it executable, and run it.
 
-## Development
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) 18+
-- [Rust](https://rustup.rs/) toolchain
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run tauri dev
-```
-
-### Configure Credentials
+## Configure Credentials
 
 1. Click the **Settings** icon (gear) in the app header
 2. Enter your Claude credentials:
