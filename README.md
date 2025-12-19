@@ -7,6 +7,11 @@ A cross-platform desktop application for monitoring AI service usage quotas (Cla
   <img src="docs/assets/analytics.png" alt="AI Pulse Dashboard Analytics" width="400">
 </p>
 
+<p align="center">
+  <img src="docs/assets/usage_dark.png" alt="AI Pulse Dashboard Usage" width="400">
+  <img src="docs/assets/analytics_dark.png" alt="AI Pulse Dashboard Analytics" width="400">
+</p>
+
 ## Features
 
 - **Real-time Usage Tracking** - Monitor your Claude API usage limits
@@ -44,20 +49,6 @@ npm run tauri dev
 - **React 19 + TypeScript** - Frontend UI
 - **shadcn/ui + Tailwind CSS v4** - Components and styling
 - **Zustand** - State management
-
-### Project Structure
-
-```
-src/                    # React frontend
-├── components/         # UI components
-├── hooks/              # Custom React hooks
-└── lib/                # Utilities and Tauri bindings
-
-src-tauri/src/          # Rust backend
-├── commands/           # Tauri command handlers
-├── providers/          # API adapters (Claude, Codex)
-└── services/           # Business logic (scheduler, notifications)
-```
 
 ## Support
 
