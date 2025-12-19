@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { useUsageStore } from "@/lib/store";
+import { useUsageStore, useSettingsStore } from "@/lib/store";
 import { fetchUsage, hasCredentials, forceRefresh as forceRefreshCommand } from "@/lib/tauri";
 import { updateTray, resetTray } from "@/lib/tray";
 import type { ProviderId, UsageData } from "@/lib/types";
@@ -14,6 +14,7 @@ interface UsageUpdateEvent {
 
 export function useUsage(provider: ProviderId) {
   const { usage, setUsage, setLoading, setError, setLastRefresh } = useUsageStore();
+  const { settings } = useSettingsStore();
   const hasFetched = useRef(false);
 
   // Manual refresh (for initial load and manual refresh button)
@@ -36,14 +37,14 @@ export function useUsage(provider: ProviderId) {
       setLastRefresh(provider, new Date());
 
       // Update system tray with new usage data
-      await updateTray(data);
+      await updateTray(data, settings?.trayDisplayLimit ?? "highest");
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setError(provider, message);
     } finally {
       setLoading(provider, false);
     }
-  }, [provider, setUsage, setLoading, setError, setLastRefresh]);
+  }, [provider, setUsage, setLoading, setError, setLastRefresh, settings?.trayDisplayLimit]);
 
   // Force refresh via scheduler (respects rate limiting)
   const forceRefresh = useCallback(async () => {
@@ -79,7 +80,7 @@ export function useUsage(provider: ProviderId) {
         setError(provider, null);
 
         // Update system tray with new usage data
-        await updateTray(data);
+        await updateTray(data, settings?.trayDisplayLimit ?? "highest");
       }
 
       setLoading(provider, false);
@@ -88,7 +89,7 @@ export function useUsage(provider: ProviderId) {
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, [provider, setUsage, setError, setLoading, setLastRefresh]);
+  }, [provider, setUsage, setError, setLoading, setLastRefresh, settings?.trayDisplayLimit]);
 
   // Listen for tray refresh events (manual refresh from tray menu)
   useEffect(() => {
@@ -116,6 +117,14 @@ export function useUsage(provider: ProviderId) {
       refresh();
     }
   }, [currentUsage, refresh]);
+
+  // Update tray when trayDisplayLimit setting changes (handles race condition on startup)
+  const trayDisplayLimit = settings?.trayDisplayLimit;
+  useEffect(() => {
+    if (currentUsage && trayDisplayLimit) {
+      updateTray(currentUsage, trayDisplayLimit);
+    }
+  }, [trayDisplayLimit, currentUsage]);
 
   return { refresh, forceRefresh };
 }

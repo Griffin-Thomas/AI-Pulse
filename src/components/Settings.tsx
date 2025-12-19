@@ -15,7 +15,8 @@ import {
   type Credentials,
   type AppSettings,
 } from "@/lib/tauri";
-import { useSettingsStore } from "@/lib/store";
+import { useSettingsStore, useUsageStore } from "@/lib/store";
+import { updateTray } from "@/lib/tray";
 
 interface SettingsProps {
   isOpen: boolean;
@@ -37,6 +38,12 @@ const THEME_OPTIONS = [
   { value: "dark", label: "Dark" },
 ] as const;
 
+const TRAY_DISPLAY_OPTIONS = [
+  { value: "highest", label: "Highest Usage" },
+  { value: "five_hour", label: "5-Hour Limit" },
+  { value: "seven_day", label: "Weekly Limit" },
+] as const;
+
 export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps) {
   const [orgId, setOrgId] = useState("");
   const [sessionKey, setSessionKey] = useState("");
@@ -49,8 +56,10 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
 
   // Settings state
   const { settings, setSettings } = useSettingsStore();
+  const { usage } = useUsageStore();
   const [refreshInterval, setRefreshInterval] = useState<0 | 60 | 180 | 300 | 600>(300);
   const [theme, setTheme] = useState<"light" | "dark" | "system">("dark");
+  const [trayDisplayLimit, setTrayDisplayLimit] = useState<"highest" | "five_hour" | "seven_day">("highest");
   const [launchAtStartup, setLaunchAtStartup] = useState(false);
   const [isTogglingAutostart, setIsTogglingAutostart] = useState(false);
 
@@ -82,6 +91,7 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
         setRefreshInterval(loadedSettings.refreshInterval);
       }
       setTheme(loadedSettings.theme);
+      setTrayDisplayLimit(loadedSettings.trayDisplayLimit ?? "highest");
 
       // Check actual autostart status from system
       const autostartEnabled = await isEnabled();
@@ -167,6 +177,32 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
       } catch (err) {
         console.error("Failed to update scheduler interval:", err);
       }
+    }
+
+    try {
+      await saveSettings(newSettings);
+    } catch (err) {
+      console.error("Failed to save settings:", err);
+    }
+  };
+
+  const handleTrayDisplayLimitChange = async (selectedValue: string) => {
+    if (!settings) return;
+
+    const value = selectedValue as "highest" | "five_hour" | "seven_day";
+    setTrayDisplayLimit(value);
+
+    const newSettings = {
+      ...settings,
+      trayDisplayLimit: value,
+    };
+
+    setSettings(newSettings);
+
+    // Immediately update the tray with the new setting
+    const currentUsage = usage.claude;
+    if (currentUsage) {
+      await updateTray(currentUsage, value);
     }
 
     try {
@@ -402,13 +438,32 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
                 </select>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="tray-display">Menu Bar Display</Label>
+                <select
+                  id="tray-display"
+                  value={trayDisplayLimit}
+                  onChange={(e) => handleTrayDisplayLimitChange(e.target.value)}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  {TRAY_DISPLAY_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Choose which usage limit to display in the menu bar icon
+                </p>
+              </div>
+
             </div>
 
             {/* Help section */}
             <div className="pt-4 border-t">
               <h3 className="text-sm font-medium mb-2">How to get your credentials</h3>
               <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>Log in to claude.ai in your browser</li>
+                <li>Log in to Claude.ai in your browser</li>
                 <li>Go to Settings → Organization to find your Org ID</li>
                 <li>Open DevTools (F12) → Application → Cookies</li>
                 <li>Copy the value of the "sessionKey" cookie</li>

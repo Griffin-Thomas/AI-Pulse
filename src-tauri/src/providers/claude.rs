@@ -79,42 +79,52 @@ impl ClaudeProvider {
 
         // 5-hour limit (may be absent when no usage)
         if let Some(ref limit) = response.five_hour {
-            limits.push(self.parse_limit("five_hour", "5-Hour Limit", limit, None)?);
+            if let Some(parsed) = self.parse_limit("five_hour", "5-Hour Limit", limit, None)? {
+                limits.push(parsed);
+            }
         }
 
         // Weekly limit (optional)
         if let Some(ref limit) = response.seven_day {
-            limits.push(self.parse_limit("seven_day", "Weekly Limit", limit, None)?);
+            if let Some(parsed) = self.parse_limit("seven_day", "Weekly Limit", limit, None)? {
+                limits.push(parsed);
+            }
         }
 
         // Opus limit (optional)
         if let Some(ref limit) = response.seven_day_opus {
-            limits.push(self.parse_limit(
+            if let Some(parsed) = self.parse_limit(
                 "seven_day_opus",
                 "Weekly Opus",
                 limit,
                 Some("opus"),
-            )?);
+            )? {
+                limits.push(parsed);
+            }
         }
 
         // Sonnet limit (optional)
         if let Some(ref limit) = response.seven_day_sonnet {
-            limits.push(self.parse_limit(
+            if let Some(parsed) = self.parse_limit(
                 "seven_day_sonnet",
                 "Weekly Sonnet",
                 limit,
                 Some("sonnet"),
-            )?);
+            )? {
+                limits.push(parsed);
+            }
         }
 
         // OAuth apps limit (optional)
         if let Some(ref limit) = response.seven_day_oauth_apps {
-            limits.push(self.parse_limit(
+            if let Some(parsed) = self.parse_limit(
                 "seven_day_oauth_apps",
                 "Weekly OAuth Apps",
                 limit,
                 Some("oauth"),
-            )?);
+            )? {
+                limits.push(parsed);
+            }
         }
 
         Ok(UsageData {
@@ -125,24 +135,31 @@ impl ClaudeProvider {
         })
     }
 
+    /// Parse a limit, returning None if resets_at is missing (0% usage)
     fn parse_limit(
         &self,
         id: &str,
         label: &str,
         usage: &crate::models::LimitUsage,
         category: Option<&str>,
-    ) -> Result<UsageLimit, ProviderError> {
-        let resets_at = DateTime::parse_from_rfc3339(&usage.resets_at)
+    ) -> Result<Option<UsageLimit>, ProviderError> {
+        // When utilization is 0%, resets_at is null - skip this limit
+        let resets_at_str = match &usage.resets_at {
+            Some(s) => s,
+            None => return Ok(None),
+        };
+
+        let resets_at = DateTime::parse_from_rfc3339(resets_at_str)
             .map(|dt| dt.with_timezone(&Utc))
             .map_err(|e| ProviderError::ParseError(format!("Invalid date format: {}", e)))?;
 
-        Ok(UsageLimit {
+        Ok(Some(UsageLimit {
             id: id.to_string(),
             label: label.to_string(),
             utilization: usage.utilization,
             resets_at,
             category: category.map(String::from),
-        })
+        }))
     }
 }
 

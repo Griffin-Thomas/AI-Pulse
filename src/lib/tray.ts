@@ -1,6 +1,7 @@
 import { TrayIcon } from "@tauri-apps/api/tray";
 import { Image } from "@tauri-apps/api/image";
 import type { UsageData, UsageLimit } from "./types";
+import type { TrayDisplayLimit } from "./tauri";
 
 const TRAY_ID = "main-tray";
 const ICON_SIZE = 22; // Standard tray icon size
@@ -97,12 +98,23 @@ function generateIconData(
 }
 
 /**
- * Get the primary limit (highest utilization) from usage data
+ * Get the limit to display based on the user's preference
  */
-function getPrimaryLimit(usage: UsageData): UsageLimit | null {
+function getDisplayLimit(usage: UsageData, displayOption: TrayDisplayLimit): UsageLimit | null {
   if (!usage.limits || usage.limits.length === 0) return null;
 
-  // Find the limit with highest normalized utilization (most critical)
+  // Find specific limit by ID if requested
+  if (displayOption === "five_hour") {
+    const fiveHour = usage.limits.find(l => l.id === "five_hour");
+    if (fiveHour) return fiveHour;
+    // Fall back to highest if five_hour not available
+  } else if (displayOption === "seven_day") {
+    const sevenDay = usage.limits.find(l => l.id === "seven_day");
+    if (sevenDay) return sevenDay;
+    // Fall back to highest if seven_day not available
+  }
+
+  // Default: find the limit with highest normalized utilization (most critical)
   return usage.limits.reduce((max, limit) =>
     normalizeUtilization(limit.utilization) > normalizeUtilization(max.utilization) ? limit : max
   );
@@ -126,7 +138,10 @@ function formatTooltip(usage: UsageData): string {
 /**
  * Update the system tray with current usage data
  */
-export async function updateTray(usage: UsageData | null): Promise<void> {
+export async function updateTray(
+  usage: UsageData | null,
+  displayOption: TrayDisplayLimit = "highest"
+): Promise<void> {
   try {
     const tray = await TrayIcon.getById(TRAY_ID);
     if (!tray) {
@@ -140,12 +155,12 @@ export async function updateTray(usage: UsageData | null): Promise<void> {
       return;
     }
 
-    // Get the primary (highest) limit
-    const primaryLimit = getPrimaryLimit(usage);
-    if (!primaryLimit) return;
+    // Get the limit to display based on user preference
+    const displayLimit = getDisplayLimit(usage, displayOption);
+    if (!displayLimit) return;
 
     // Normalize utilization and calculate percentage
-    const normalizedUtilization = normalizeUtilization(primaryLimit.utilization);
+    const normalizedUtilization = normalizeUtilization(displayLimit.utilization);
     const percentage = Math.min(Math.round(normalizedUtilization * 100), 100);
     const level = getUsageLevel(normalizedUtilization);
 

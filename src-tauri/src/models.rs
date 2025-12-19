@@ -81,7 +81,8 @@ pub struct ClaudeUsageResponse {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LimitUsage {
     pub utilization: f64,
-    pub resets_at: String,
+    /// Reset time - null when utilization is 0%
+    pub resets_at: Option<String>,
 }
 
 /// App settings
@@ -93,8 +94,15 @@ pub struct AppSettings {
     pub launch_at_startup: bool,
     pub refresh_mode: String,
     pub refresh_interval: u32,
+    /// Which limit to display in the menu bar: "highest", "five_hour", or "seven_day"
+    #[serde(default = "default_tray_display_limit")]
+    pub tray_display_limit: String,
     pub notifications: NotificationSettings,
     pub providers: Vec<ProviderConfig>,
+}
+
+fn default_tray_display_limit() -> String {
+    "highest".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -214,6 +222,7 @@ impl Default for AppSettings {
             launch_at_startup: false,
             refresh_mode: "adaptive".to_string(),
             refresh_interval: 300,
+            tray_display_limit: "highest".to_string(),
             notifications: NotificationSettings {
                 enabled: true,
                 thresholds: vec![50, 75, 90],
@@ -298,6 +307,7 @@ mod tests {
         assert!(!settings.launch_at_startup);
         assert_eq!(settings.refresh_mode, "adaptive");
         assert_eq!(settings.refresh_interval, 300);
+        assert_eq!(settings.tray_display_limit, "highest");
         assert!(settings.notifications.enabled);
         assert_eq!(settings.notifications.thresholds, vec![50, 75, 90]);
         assert_eq!(settings.providers.len(), 2);
@@ -308,7 +318,16 @@ mod tests {
         let json = r#"{"utilization":0.75,"resets_at":"2025-01-15T12:00:00Z"}"#;
         let usage: LimitUsage = serde_json::from_str(json).unwrap();
         assert!((usage.utilization - 0.75).abs() < 0.001);
-        assert_eq!(usage.resets_at, "2025-01-15T12:00:00Z");
+        assert_eq!(usage.resets_at, Some("2025-01-15T12:00:00Z".to_string()));
+    }
+
+    #[test]
+    fn limit_usage_deserialization_null_reset() {
+        // When utilization is 0%, resets_at is null
+        let json = r#"{"utilization":0.0,"resets_at":null}"#;
+        let usage: LimitUsage = serde_json::from_str(json).unwrap();
+        assert!((usage.utilization - 0.0).abs() < 0.001);
+        assert_eq!(usage.resets_at, None);
     }
 
     #[test]

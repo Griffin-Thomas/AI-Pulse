@@ -85,12 +85,15 @@ export async function forceRefresh(): Promise<void> {
 }
 
 // Settings types
+export type TrayDisplayLimit = "highest" | "five_hour" | "seven_day";
+
 export interface AppSettings {
   theme: "light" | "dark" | "system";
   language: "en";
   launchAtStartup: boolean;
   refreshMode: "adaptive" | "fixed";
   refreshInterval: 60 | 180 | 300 | 600;
+  trayDisplayLimit: TrayDisplayLimit;
   notifications: NotificationSettings;
   providers: ProviderConfig[];
 }

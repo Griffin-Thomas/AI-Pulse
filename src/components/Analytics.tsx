@@ -638,7 +638,7 @@ export function Analytics({ provider = "claude" }: AnalyticsProps) {
             )}
 
             {/* Hourly Distribution Chart */}
-            {heatmapData.hourlyAvg.length > 0 && (
+            {/* {heatmapData.hourlyAvg.length > 0 && (
               <div className="border rounded-lg p-4">
                 <h3 className="text-sm font-medium mb-4">Hourly Distribution</h3>
                 <div className="h-48">
@@ -664,7 +664,7 @@ export function Analytics({ provider = "claude" }: AnalyticsProps) {
                   </ResponsiveContainer>
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Export Section */}
             <div className="border rounded-lg p-4">
