@@ -57,7 +57,9 @@ On first launch, you'll need to configure your credentials:
 
 The main dashboard displays your current AI usage across different limits.
 
-![Dashboard](assets/usage.png)
+<p align="center">
+  <img src="assets/usage.png" alt="AI Pulse Dashboard Usage" width="400">
+</p>
 
 ### Usage Cards
 
@@ -107,6 +109,8 @@ Right-click (or click on macOS) the tray icon to access:
 ### Tray Tooltip
 
 Hover over the tray icon to see a summary of all your usage limits.
+
+![Tray Tooltip](assets/tray_tooltip.png)
 
 ---
 
@@ -167,7 +171,9 @@ Enable to automatically start AI Pulse when you log in.
 
 Switch to the Analytics tab to view your usage history and patterns.
 
-![Analytics](assets/analytics.png)
+<p align="center">
+  <img src="assets/analytics.png" alt="AI Pulse Dashboard Analytics" width="400">
+</p>
 
 ### Usage Trends
 
