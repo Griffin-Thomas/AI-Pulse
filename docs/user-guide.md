@@ -160,6 +160,7 @@ Select your preferred appearance:
 - **System**: Follows your operating system theme
 - **Light**: Light background with dark text
 - **Dark**: Dark background with light text
+- **Pink**: Pink! Added this for my fiancée
 
 ### Launch at Startup
 

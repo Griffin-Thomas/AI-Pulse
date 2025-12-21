@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Added new Pink theme
+- Pink theme support as requested by my fiancée
 
 ## [0.9.0] - 2025-12-19
 
