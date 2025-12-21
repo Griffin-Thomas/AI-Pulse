@@ -36,6 +36,7 @@ const THEME_OPTIONS = [
   { value: "system", label: "System" },
   { value: "light", label: "Light" },
   { value: "dark", label: "Dark" },
+  { value: "pink", label: "Pink" },
 ] as const;
 
 const TRAY_DISPLAY_OPTIONS = [
@@ -58,7 +59,7 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
   const { settings, setSettings } = useSettingsStore();
   const { usage } = useUsageStore();
   const [refreshInterval, setRefreshInterval] = useState<0 | 60 | 180 | 300 | 600>(300);
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("dark");
+  const [theme, setTheme] = useState<"light" | "dark" | "system" | "pink">("dark");
   const [trayDisplayLimit, setTrayDisplayLimit] = useState<"highest" | "five_hour" | "seven_day">("highest");
   const [launchAtStartup, setLaunchAtStartup] = useState(false);
   const [isTogglingAutostart, setIsTogglingAutostart] = useState(false);
@@ -212,13 +213,16 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
     }
   };
 
-  const applyTheme = (newTheme: "light" | "dark" | "system") => {
+  const applyTheme = (newTheme: "light" | "dark" | "system" | "pink") => {
     const root = document.documentElement;
+    root.classList.remove("dark", "pink");
     if (newTheme === "system") {
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      root.classList.toggle("dark", prefersDark);
-    } else {
-      root.classList.toggle("dark", newTheme === "dark");
+      if (prefersDark) root.classList.add("dark");
+    } else if (newTheme === "dark") {
+      root.classList.add("dark");
+    } else if (newTheme === "pink") {
+      root.classList.add("pink");
     }
   };
 
@@ -425,7 +429,7 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
                   onChange={(e) =>
                     handleSettingChange(
                       "theme",
-                      e.target.value as "light" | "dark" | "system"
+                      e.target.value as "light" | "dark" | "system" | "pink"
                     )
                   }
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"

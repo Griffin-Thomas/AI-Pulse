@@ -88,7 +88,7 @@ export async function forceRefresh(): Promise<void> {
 export type TrayDisplayLimit = "highest" | "five_hour" | "seven_day";
 
 export interface AppSettings {
-  theme: "light" | "dark" | "system";
+  theme: "light" | "dark" | "system" | "pink";
   language: "en";
   launchAtStartup: boolean;
   refreshMode: "adaptive" | "fixed";

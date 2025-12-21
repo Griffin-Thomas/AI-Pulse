@@ -6,13 +6,16 @@ import { UpdateChecker } from "@/components/UpdateChecker";
 import { useUsageStore, useSettingsStore } from "@/lib/store";
 import { getSettings } from "@/lib/tauri";
 
-function applyTheme(theme: "light" | "dark" | "system") {
+function applyTheme(theme: "light" | "dark" | "system" | "pink") {
   const root = document.documentElement;
+  root.classList.remove("dark", "pink");
   if (theme === "system") {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    root.classList.toggle("dark", prefersDark);
-  } else {
-    root.classList.toggle("dark", theme === "dark");
+    if (prefersDark) root.classList.add("dark");
+  } else if (theme === "dark") {
+    root.classList.add("dark");
+  } else if (theme === "pink") {
+    root.classList.add("pink");
   }
 }
 
