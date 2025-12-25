@@ -1,10 +1,26 @@
 import { TrayIcon } from "@tauri-apps/api/tray";
 import { Image } from "@tauri-apps/api/image";
+import { platform } from "@tauri-apps/plugin-os";
 import type { UsageData, UsageLimit } from "./types";
 import type { TrayDisplayLimit } from "./tauri";
 
 const TRAY_ID = "main-tray";
 const ICON_SIZE = 22; // Standard tray icon size
+
+// Platform detection - cached on first call
+let cachedPlatform: string | null = null;
+async function getPlatform(): Promise<string> {
+  if (cachedPlatform === null) {
+    cachedPlatform = platform();
+  }
+  return cachedPlatform;
+}
+
+// Check if tooltip is supported (not on Linux)
+async function isTooltipSupported(): Promise<boolean> {
+  const plat = await getPlatform();
+  return plat !== "linux";
+}
 
 export type UsageLevel = "low" | "medium" | "high" | "critical";
 
@@ -167,7 +183,10 @@ export async function updateTray(
 
     if (!usage || usage.limits.length === 0) {
       // No usage data - show default state
-      await tray.setTooltip("AI Pulse\nNo data available");
+      // Note: setTooltip is not supported on Linux
+      if (await isTooltipSupported()) {
+        await tray.setTooltip("AI Pulse\nNo data available");
+      }
       return;
     }
 
@@ -185,9 +204,11 @@ export async function updateTray(
     const image = await Image.new(iconData, ICON_SIZE, ICON_SIZE);
     await tray.setIcon(image);
 
-    // Update tooltip
-    const tooltip = formatTooltip(usage);
-    await tray.setTooltip(tooltip);
+    // Update tooltip (not supported on Linux)
+    if (await isTooltipSupported()) {
+      const tooltip = formatTooltip(usage);
+      await tray.setTooltip(tooltip);
+    }
   } catch (err) {
     console.error("Failed to update tray:", err);
   }
@@ -201,7 +222,10 @@ export async function resetTray(): Promise<void> {
     const tray = await TrayIcon.getById(TRAY_ID);
     if (!tray) return;
 
-    await tray.setTooltip("AI Pulse\nConfigure credentials in Settings");
+    // Tooltip is not supported on Linux
+    if (await isTooltipSupported()) {
+      await tray.setTooltip("AI Pulse\nConfigure credentials in Settings");
+    }
   } catch (err) {
     console.error("Failed to reset tray:", err);
   }

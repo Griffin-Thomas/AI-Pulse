@@ -46,7 +46,7 @@
 ## File Structure
 
 ```
-ai-usage-monitor/
+AI-Pulse/
 ├── src/                          # Frontend (React)
 │   ├── components/
 │   │   ├── ui/                   # shadcn components

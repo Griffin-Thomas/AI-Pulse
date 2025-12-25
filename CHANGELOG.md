@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2025-12-24
+
+### Added
+- Custom About dialog with author info, Buy Me a Coffee link, and Check for Updates button
+- macOS: Native application menu bar (AI Pulse, Edit, View, Window menus)
+- macOS: Keyboard shortcuts (Cmd+, toggles Settings, Cmd+R for Refresh, Cmd+1 for Usage, Cmd+2 for Analytics)
+- Windows: Improved tray tooltip with usage instructions
+- Linux: AppIndicator support with left-click menu behaviour
+- Platform detection via tauri-plugin-os
+- Shell plugin for opening external links
+
+### Changed
+- System tray now has platform-specific behaviour:
+  - macOS: Template mode for dark/light theme adaptation
+  - Windows: Left-click shows dashboard, right-click shows menu
+  - Linux: Left-click shows menu (standard Linux behaviour), tooltip disabled (not supported)
+- Updated user guide with platform-specific notes
+
 ## [0.10.0] - 2025-12-23
 
 ### Added

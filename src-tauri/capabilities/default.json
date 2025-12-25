@@ -31,6 +31,10 @@
     "autostart:allow-is-enabled",
     "updater:default",
     "process:allow-restart",
-    "process:allow-exit"
+    "process:allow-exit",
+    "os:default",
+    "core:tray:allow-set-title",
+    "core:menu:default",
+    "shell:allow-open"
   ]
 }

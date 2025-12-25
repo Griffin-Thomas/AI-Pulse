@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { listen } from "@tauri-apps/api/event";
 import { RefreshCw, Settings, BarChart3, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UsageCard } from "@/components/UsageCard";
@@ -18,6 +19,20 @@ export function Dashboard({ provider = "claude", onSettingsClick }: DashboardPro
   const [activeTab, setActiveTab] = useState<TabType>("usage");
   const { usage, isLoading, error, lastRefresh } = useUsageStore();
   const { refresh } = useUsage(provider);
+
+  // Listen for menu events from native app menu (macOS)
+  useEffect(() => {
+    const unlistenUsage = listen("menu-usage", () => {
+      setActiveTab("usage");
+    });
+    const unlistenAnalytics = listen("menu-analytics", () => {
+      setActiveTab("analytics");
+    });
+    return () => {
+      unlistenUsage.then((fn) => fn());
+      unlistenAnalytics.then((fn) => fn());
+    };
+  }, []);
 
   const currentUsage = usage[provider];
   const currentLoading = isLoading[provider];

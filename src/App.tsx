@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { Dashboard } from "@/components/Dashboard";
 import { Settings } from "@/components/Settings";
+import { About } from "@/components/About";
 import { UpdateChecker } from "@/components/UpdateChecker";
 import { useUsageStore, useSettingsStore } from "@/lib/store";
 import { getSettings } from "@/lib/tauri";
@@ -21,6 +22,7 @@ function applyTheme(theme: "light" | "dark" | "system" | "pink") {
 
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const { setUsage, setError } = useUsageStore();
   const { setSettings } = useSettingsStore();
 
@@ -55,7 +57,7 @@ function App() {
     setIsSettingsOpen(false);
   }, []);
 
-  // Listen for tray settings event
+  // Listen for tray settings event (opens settings)
   useEffect(() => {
     const unlisten = listen("tray-settings", () => {
       setIsSettingsOpen(true);
@@ -63,6 +65,30 @@ function App() {
     return () => {
       unlisten.then((fn) => fn());
     };
+  }, []);
+
+  // Listen for toggle-settings event (Cmd+, toggles settings)
+  useEffect(() => {
+    const unlisten = listen("toggle-settings", () => {
+      setIsSettingsOpen((prev) => !prev);
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
+  // Listen for show-about event
+  useEffect(() => {
+    const unlisten = listen("show-about", () => {
+      setIsAboutOpen(true);
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
+  const handleAboutClose = useCallback(() => {
+    setIsAboutOpen(false);
   }, []);
 
   const handleCredentialsSaved = useCallback(() => {
@@ -83,6 +109,7 @@ function App() {
         onClose={handleSettingsClose}
         onCredentialsSaved={handleCredentialsSaved}
       />
+      <About isOpen={isAboutOpen} onClose={handleAboutClose} />
     </div>
   );
 }

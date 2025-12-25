@@ -85,13 +85,12 @@
 - [x] Unit tests for Rust backend (adapters, services)
 - [x] Integration tests for API interactions (mocked)
 - [x] Frontend component tests with Vitest
-- [ ] Cross-platform testing matrix
 
 ### 3.2 Platform-Specific Polish
-- [ ] macOS: Native menu bar integration, Keychain prompts
+- [x] macOS: Native menu bar integration (AI Pulse, Edit, View, Window menus with keyboard shortcuts)
 - [x] macOS: Test notifications in production build
-- [ ] Windows: System tray behaviour
-- [ ] Linux: AppIndicator support, various desktop environments
+- [x] Windows: System tray behaviour (tooltip with instructions, left-click shows dashboard)
+- [x] Linux: AppIndicator support, various desktop environments (documented requirements, left-click shows menu)
 
 ### 3.3 App Icon & Branding
 - [x] Design custom app icon (usage meter/gauge concept)

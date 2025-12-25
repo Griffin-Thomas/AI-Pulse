@@ -112,6 +112,33 @@ Hover over the tray icon to see a summary of all your usage limits.
 
 ![Tray Tooltip](assets/tray_tooltip.png)
 
+### Platform-Specific Behaviour
+
+| Feature | macOS | Windows | Linux |
+|---------|-------|---------|-------|
+| Tray Icon | ✅ Template mode (adapts to dark/light) | ✅ Standard | ✅ Requires AppIndicator |
+| Tooltip on Hover | ✅ | ✅ | ❌ Not supported |
+| Left-click | Shows dashboard | Shows dashboard | Shows menu |
+| Right-click | Shows menu | Shows menu | Shows menu |
+| Menu Bar | ✅ Native app menu | Window menu | Window menu |
+
+**macOS Notes:**
+- The app includes a native menu bar (AI Pulse, Edit, View, Window menus)
+- Keyboard shortcuts:
+  - `Cmd+,` to toggle Settings (open/close)
+  - `Cmd+R` to refresh usage data
+  - `Cmd+1` for Current Usage tab
+  - `Cmd+2` for Analytics tab
+
+**Linux Notes:**
+- Tray tooltip is not supported on Linux
+- Left-click shows the menu directly (standard Linux behaviour)
+- Some desktop environments require AppIndicator support:
+  - **GNOME**: Install `gnome-shell-extension-appindicator`
+  - **KDE Plasma**: Usually works by default
+  - **XFCE**: Install `xfce4-indicator-plugin`
+  - **Cinnamon**: Install `xapp` package
+
 ---
 
 ## Settings
