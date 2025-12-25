@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { AlertTriangle, ExternalLink, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { open } from "@tauri-apps/plugin-shell";
@@ -94,16 +94,11 @@ export function SessionBanner({
   onSettingsClick,
   onRefresh,
 }: SessionBannerProps) {
-  const [dismissed, setDismissed] = useState(false);
-  const [lastError, setLastError] = useState<string | null>(null);
+  // Track which error was dismissed (not just a boolean)
+  const [dismissedError, setDismissedError] = useState<string | null>(null);
 
-  // Reset dismissed state when error changes
-  useEffect(() => {
-    if (error !== lastError) {
-      setDismissed(false);
-      setLastError(error);
-    }
-  }, [error, lastError]);
+  // Banner is dismissed only if the current error matches the dismissed error
+  const isDismissed = error !== null && error === dismissedError;
 
   const bannerType = detectBannerType(error);
 
@@ -116,7 +111,7 @@ export function SessionBanner({
   }, []);
 
   // Don't show banner if dismissed, no error, or not a recognized error type
-  if (dismissed || !bannerType) {
+  if (isDismissed || !bannerType) {
     return null;
   }
 
@@ -167,7 +162,7 @@ export function SessionBanner({
         variant="ghost"
         size="icon"
         className="h-6 w-6 shrink-0"
-        onClick={() => setDismissed(true)}
+        onClick={() => setDismissedError(error)}
       >
         <X className="h-4 w-4" />
       </Button>

@@ -196,7 +196,8 @@ describe('Tauri API Integration', () => {
         },
         providers: [
           { id: 'claude', enabled: true, credentials: {} },
-          { id: 'codex', enabled: false, credentials: {} },
+          { id: 'chatgpt', enabled: false, credentials: {} },
+          { id: 'gemini', enabled: false, credentials: {} },
         ],
       }
       mockInvoke.mockResolvedValue(mockSettings)

@@ -5,17 +5,17 @@ import type { UsageData } from './types'
 describe('useUsageStore', () => {
   beforeEach(() => {
     useUsageStore.setState({
-      usage: { claude: null, codex: null },
-      isLoading: { claude: false, codex: false },
-      error: { claude: null, codex: null },
-      lastRefresh: { claude: null, codex: null },
+      usage: { claude: null, chatgpt: null, gemini: null },
+      isLoading: { claude: false, chatgpt: false, gemini: false },
+      error: { claude: null, chatgpt: null, gemini: null },
+      lastRefresh: { claude: null, chatgpt: null, gemini: null },
     })
   })
 
   it('has correct initial state', () => {
     const state = useUsageStore.getState()
     expect(state.usage.claude).toBeNull()
-    expect(state.usage.codex).toBeNull()
+    expect(state.usage.chatgpt).toBeNull()
     expect(state.isLoading.claude).toBe(false)
     expect(state.error.claude).toBeNull()
   })
@@ -36,26 +36,26 @@ describe('useUsageStore', () => {
 
     useUsageStore.getState().setUsage('claude', mockData)
     expect(useUsageStore.getState().usage.claude).toEqual(mockData)
-    expect(useUsageStore.getState().usage.codex).toBeNull()
+    expect(useUsageStore.getState().usage.chatgpt).toBeNull()
   })
 
   it('sets loading state for a provider', () => {
     useUsageStore.getState().setLoading('claude', true)
     expect(useUsageStore.getState().isLoading.claude).toBe(true)
-    expect(useUsageStore.getState().isLoading.codex).toBe(false)
+    expect(useUsageStore.getState().isLoading.chatgpt).toBe(false)
   })
 
   it('sets error for a provider', () => {
     useUsageStore.getState().setError('claude', 'Session expired')
     expect(useUsageStore.getState().error.claude).toBe('Session expired')
-    expect(useUsageStore.getState().error.codex).toBeNull()
+    expect(useUsageStore.getState().error.chatgpt).toBeNull()
   })
 
   it('sets last refresh time for a provider', () => {
     const now = new Date()
     useUsageStore.getState().setLastRefresh('claude', now)
     expect(useUsageStore.getState().lastRefresh.claude).toEqual(now)
-    expect(useUsageStore.getState().lastRefresh.codex).toBeNull()
+    expect(useUsageStore.getState().lastRefresh.chatgpt).toBeNull()
   })
 
   it('clears error when set to null', () => {
@@ -85,7 +85,8 @@ describe('useSettingsStore', () => {
         },
         providers: [
           { id: 'claude', enabled: true, credentials: {} },
-          { id: 'codex', enabled: false, credentials: {} },
+          { id: 'chatgpt', enabled: false, credentials: {} },
+          { id: 'gemini', enabled: false, credentials: {} },
         ],
       },
       isLoading: false,

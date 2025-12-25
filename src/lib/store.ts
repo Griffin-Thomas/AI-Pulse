@@ -15,10 +15,10 @@ interface UsageState {
 }
 
 export const useUsageStore = create<UsageState>((set) => ({
-  usage: { claude: null, codex: null },
-  isLoading: { claude: false, codex: false },
-  error: { claude: null, codex: null },
-  lastRefresh: { claude: null, codex: null },
+  usage: { claude: null, chatgpt: null, gemini: null },
+  isLoading: { claude: false, chatgpt: false, gemini: false },
+  error: { claude: null, chatgpt: null, gemini: null },
+  lastRefresh: { claude: null, chatgpt: null, gemini: null },
 
   setUsage: (provider, data) =>
     set((state) => ({
@@ -63,7 +63,8 @@ const defaultSettings: AppSettings = {
   },
   providers: [
     { id: "claude", enabled: true, credentials: {} },
-    { id: "codex", enabled: false, credentials: {} },
+    { id: "chatgpt", enabled: false, credentials: {} },
+    { id: "gemini", enabled: false, credentials: {} },
   ],
 };
 
