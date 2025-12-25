@@ -4,6 +4,7 @@ import { RefreshCw, Settings, BarChart3, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UsageCard } from "@/components/UsageCard";
 import { Analytics } from "@/components/Analytics";
+import { SessionBanner } from "@/components/SessionBanner";
 import { useUsageStore } from "@/lib/store";
 import { useUsage } from "@/hooks/useUsage";
 import type { ProviderId } from "@/lib/types";
@@ -87,15 +88,17 @@ export function Dashboard({ provider = "claude", onSettingsClick }: DashboardPro
         </button>
       </div>
 
+      {/* Session Banner (shows when there are credential/session issues) */}
+      <SessionBanner
+        error={currentError}
+        onSettingsClick={onSettingsClick ?? (() => {})}
+        onRefresh={refresh}
+      />
+
       {/* Content */}
       {activeTab === "usage" ? (
         <>
           <main className="flex-1 overflow-auto p-4">
-            {currentError && (
-              <div className="mb-4 p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-                {currentError}
-              </div>
-            )}
 
             {currentLoading && !currentUsage && (
               <div className="flex items-center justify-center h-64">

@@ -21,6 +21,10 @@ const SLEEP_DETECTION_THRESHOLD_SECS: u64 = 30;
 pub struct SchedulerState {
     /// Whether the scheduler is currently running
     running: AtomicBool,
+    /// Whether the scheduler is paused due to session issues
+    paused: AtomicBool,
+    /// Count of consecutive session errors
+    session_error_count: AtomicU64,
     /// Last fetch timestamp (unix millis)
     last_fetch: AtomicU64,
     /// Current interval in seconds
@@ -33,10 +37,24 @@ pub struct SchedulerState {
     notification_state: NotificationState,
 }
 
+/// Maximum consecutive session errors before pausing
+const MAX_SESSION_ERRORS: u64 = 3;
+
+/// Event payload for session status
+#[derive(Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionStatusEvent {
+    pub valid: bool,
+    pub error_count: u64,
+    pub paused: bool,
+}
+
 impl Default for SchedulerState {
     fn default() -> Self {
         Self {
             running: AtomicBool::new(false),
+            paused: AtomicBool::new(false),
+            session_error_count: AtomicU64::new(0),
             last_fetch: AtomicU64::new(0),
             interval_secs: AtomicU64::new(300), // Default 5 minutes
             fetch_lock: AsyncMutex::new(()),
@@ -57,6 +75,26 @@ impl SchedulerState {
 
     pub fn set_running(&self, running: bool) {
         self.running.store(running, Ordering::SeqCst);
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.paused.load(Ordering::SeqCst)
+    }
+
+    pub fn set_paused(&self, paused: bool) {
+        self.paused.store(paused, Ordering::SeqCst);
+    }
+
+    pub fn get_session_error_count(&self) -> u64 {
+        self.session_error_count.load(Ordering::SeqCst)
+    }
+
+    pub fn increment_session_error_count(&self) -> u64 {
+        self.session_error_count.fetch_add(1, Ordering::SeqCst) + 1
+    }
+
+    pub fn reset_session_error_count(&self) {
+        self.session_error_count.store(0, Ordering::SeqCst);
     }
 
     pub fn get_interval(&self) -> u64 {
@@ -215,14 +253,14 @@ impl SchedulerService {
                     "Detected system wake ({}s gap), refreshing immediately",
                     tick_elapsed
                 );
-                // System just woke up - refresh immediately
+                // System just woke up - refresh immediately (even if paused, to check if session is valid again)
                 Self::fetch_and_emit(&app, &state).await;
                 last_check = Instant::now();
 
                 // Emit wake event to frontend
                 let _ = app.emit("system-wake", ());
-            } else if elapsed >= interval {
-                // Normal scheduled fetch
+            } else if elapsed >= interval && !state.is_paused() {
+                // Normal scheduled fetch (skip if paused due to session issues)
                 Self::fetch_and_emit(&app, &state).await;
                 last_check = Instant::now();
             }
@@ -273,6 +311,23 @@ impl SchedulerService {
 
         let event = match result {
             Ok(data) => {
+                // Session is valid - reset error count and unpause if needed
+                if state.get_session_error_count() > 0 || state.is_paused() {
+                    log::info!("Session restored, resuming scheduler");
+                    state.reset_session_error_count();
+                    state.set_paused(false);
+
+                    // Emit session status to frontend
+                    let _ = app.emit(
+                        "session-status",
+                        SessionStatusEvent {
+                            valid: true,
+                            error_count: 0,
+                            paused: false,
+                        },
+                    );
+                }
+
                 // Adaptive refresh: adjust interval based on usage level
                 Self::maybe_adjust_interval(app, state, &data);
 
@@ -320,8 +375,50 @@ impl SchedulerService {
 
                 // Check if this is a session expiry error
                 let error_str = e.to_string();
-                if error_str.contains("expired") || error_str.contains("401") {
+                let is_session_error = error_str.contains("expired")
+                    || error_str.contains("401")
+                    || error_str.contains("SessionExpired");
+
+                if is_session_error {
                     NotificationService::send_session_expiry_warning(app);
+
+                    // Track consecutive session errors
+                    let error_count = state.increment_session_error_count();
+                    log::warn!(
+                        "Session error {}/{} - {}",
+                        error_count,
+                        MAX_SESSION_ERRORS,
+                        error_str
+                    );
+
+                    // Pause scheduler after too many consecutive errors
+                    if error_count >= MAX_SESSION_ERRORS {
+                        log::warn!(
+                            "Too many session errors ({}), pausing scheduler",
+                            error_count
+                        );
+                        state.set_paused(true);
+
+                        // Emit session status to frontend
+                        let _ = app.emit(
+                            "session-status",
+                            SessionStatusEvent {
+                                valid: false,
+                                error_count,
+                                paused: true,
+                            },
+                        );
+                    } else {
+                        // Emit session status (not paused yet)
+                        let _ = app.emit(
+                            "session-status",
+                            SessionStatusEvent {
+                                valid: false,
+                                error_count,
+                                paused: false,
+                            },
+                        );
+                    }
                 }
 
                 UsageUpdateEvent {

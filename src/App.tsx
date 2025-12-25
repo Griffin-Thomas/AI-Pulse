@@ -6,7 +6,7 @@ import { About } from "@/components/About";
 import { Onboarding } from "@/components/Onboarding";
 import { UpdateChecker } from "@/components/UpdateChecker";
 import { useUsageStore, useSettingsStore } from "@/lib/store";
-import { getSettings, hasCredentials } from "@/lib/tauri";
+import { getSettings, hasCredentials, resumeScheduler } from "@/lib/tauri";
 
 function applyTheme(theme: "light" | "dark" | "system" | "pink") {
   const root = document.documentElement;
@@ -100,10 +100,17 @@ function App() {
     setIsAboutOpen(false);
   }, []);
 
-  const handleCredentialsSaved = useCallback(() => {
+  const handleCredentialsSaved = useCallback(async () => {
     // Clear any existing error and usage data to trigger a fresh fetch
     setError("claude", null);
     setUsage("claude", null);
+
+    // Resume scheduler if it was paused due to session issues
+    try {
+      await resumeScheduler();
+    } catch (err) {
+      console.error("Failed to resume scheduler:", err);
+    }
   }, [setError, setUsage]);
 
   const handleOnboardingComplete = useCallback(() => {

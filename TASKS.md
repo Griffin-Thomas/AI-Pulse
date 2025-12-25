@@ -172,14 +172,14 @@ Deferred until Google provides a simpler usage API or community demand justifies
 - [x] Provide helpful error messages with specific remediation steps
 
 ### 6.2 Session Management
-- [ ] Detect when session key is about to expire (based on error patterns)
-- [ ] Show persistent banner when credentials need refresh
-- [ ] Add "Open Claude.ai" quick action to get fresh credentials
-- [ ] Implement session health indicator in tray menu
-- [ ] Auto-pause scheduler when session is invalid (avoid rate limiting)
+- [x] Detect when session key is about to expire (based on error patterns)
+- [x] Show persistent banner when credentials need refresh
+- [x] Add "Open Claude.ai" quick action to get fresh credentials
+- [x] Implement session health indicator in tray menu
+- [x] Auto-pause scheduler when session is invalid (avoid rate limiting)
 
 ### 6.3 Quick Actions & Shortcuts
-- [ ] Add "Open Claude.ai" to tray menu (opens in default browser)
+- [x] Add "Open Claude.ai" to tray menu (opens in default browser)
 - [ ] Implement global keyboard shortcut to show/hide window (configurable)
 - [ ] Add keyboard shortcut to copy current usage as text
 - [ ] Quick share usage stats (copy to clipboard as formatted text)

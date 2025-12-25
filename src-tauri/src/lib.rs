@@ -6,6 +6,7 @@ use tauri::{
 };
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_notification::NotificationExt;
+use tauri_plugin_shell::ShellExt;
 
 mod commands;
 mod error;
@@ -16,9 +17,10 @@ mod services;
 use commands::{
     clear_history, cleanup_history, delete_credentials, export_history_csv, export_history_json,
     fetch_usage, force_refresh, get_credentials, get_history_metadata, get_retention_policy,
-    get_scheduler_status, get_settings, get_usage_stats, has_credentials, list_providers,
-    query_history, save_credentials, save_settings, set_refresh_interval, set_retention_policy,
-    start_scheduler, stop_scheduler, test_connection, validate_credentials,
+    get_scheduler_status, get_session_status, get_settings, get_usage_stats, has_credentials,
+    list_providers, query_history, resume_scheduler, save_credentials, save_settings,
+    set_refresh_interval, set_retention_policy, start_scheduler, stop_scheduler, test_connection,
+    validate_credentials,
 };
 use services::{HistoryService, SchedulerService, SchedulerState};
 
@@ -53,10 +55,12 @@ pub fn run() {
             list_providers,
             // Scheduler commands
             get_scheduler_status,
+            get_session_status,
             start_scheduler,
             stop_scheduler,
             set_refresh_interval,
             force_refresh,
+            resume_scheduler,
             // History commands
             query_history,
             get_history_metadata,
@@ -165,7 +169,9 @@ pub fn run() {
             let show = MenuItem::with_id(app, "show", "Show Dashboard", true, None::<&str>)?;
             let refresh = MenuItem::with_id(app, "refresh", "Refresh", true, None::<&str>)?;
             let settings = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show, &refresh, &settings, &quit])?;
+            let open_claude = MenuItem::with_id(app, "open-claude", "Open Claude.ai", true, None::<&str>)?;
+            let separator = PredefinedMenuItem::separator(app)?;
+            let menu = Menu::with_items(app, &[&show, &refresh, &separator, &open_claude, &settings, &quit])?;
 
             // Platform-specific tray configuration
             let mut tray_builder = TrayIconBuilder::with_id("main-tray")
@@ -217,6 +223,11 @@ pub fn run() {
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.emit("tray-refresh", ());
                         }
+                    }
+                    "open-claude" => {
+                        // Open Claude.ai in default browser
+                        let shell = app.shell();
+                        let _ = shell.open("https://claude.ai", None::<tauri_plugin_shell::open::Program>);
                     }
                     "settings" => {
                         // Show window and emit settings event to frontend

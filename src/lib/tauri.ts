@@ -104,6 +104,20 @@ export async function forceRefresh(): Promise<void> {
   return invoke("force_refresh");
 }
 
+export async function resumeScheduler(): Promise<void> {
+  return invoke("resume_scheduler");
+}
+
+export interface SessionStatus {
+  valid: boolean;
+  errorCount: number;
+  paused: boolean;
+}
+
+export async function getSessionStatus(): Promise<SessionStatus> {
+  return invoke<SessionStatus>("get_session_status");
+}
+
 // Settings types
 export type TrayDisplayLimit = "highest" | "five_hour" | "seven_day";
 

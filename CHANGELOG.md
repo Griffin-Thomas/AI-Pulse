@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Onboarding wizard for first-time setup with step-by-step credential guide
 - Test Connection button to verify credentials before saving (in both onboarding and settings)
 - `test_connection` command with detailed error codes and user-friendly hints
+- Session management with auto-pause scheduler on repeated errors
+  - SessionBanner component shows when credentials need refresh
+  - Auto-pauses scheduler after 3 consecutive session errors
+  - Auto-resumes when valid credentials are saved
+  - `session-status` events for frontend state management
+- "Open Claude.ai" quick action in tray menu and session banner
+- `resume_scheduler` and `get_session_status` commands
 - Provider registry for multi-provider support (Rust backend)
 - Settings now shows all providers with availability status (Available/Blocked)
 - `list_providers` command for frontend to query provider metadata
@@ -18,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improved
 - Error messages now include specific remediation steps for common issues (session expired, rate limited, etc.)
+- Tray menu now has separator and "Open Claude.ai" quick action
 
 ### Documentation
 - Documented ChatGPT integration blockers (no usage API available)
