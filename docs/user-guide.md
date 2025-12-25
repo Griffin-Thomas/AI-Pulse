@@ -44,12 +44,41 @@ A comprehensive guide to using AI Pulse for monitoring your AI service usage.
 
 ### First Launch
 
-On first launch, you'll need to configure your credentials:
+On first launch, AI Pulse will guide you through a setup wizard to configure your credentials.
 
-1. Click the **Settings** icon (gear) in the app header
-2. Enter your Claude Organization ID and Session Key (see [Credential Setup](#credential-setup))
-3. Click **Save Credentials**
-4. The app will automatically fetch your usage data
+#### Step 1: Welcome
+
+The welcome screen introduces AI Pulse and its key features.
+
+<p align="center">
+  <img src="assets/onboarding_1.png" alt="Welcome Screen" width="400">
+</p>
+
+#### Step 2: Credential Guide
+
+Follow the step-by-step instructions to get your Claude credentials.
+
+<p align="center">
+  <img src="assets/onboarding_2.png" alt="Credential Guide" width="400">
+</p>
+
+#### Step 3: Enter Credentials
+
+Paste your Organization ID and Session Key, then click **Test Connection** to verify they work.
+
+<p align="center">
+  <img src="assets/onboarding_3.png" alt="Enter Credentials" width="400">
+</p>
+
+#### Step 4: All Set!
+
+Once connected, you're ready to start monitoring your usage.
+
+<p align="center">
+  <img src="assets/onboarding_4.png" alt="Setup Complete" width="400">
+</p>
+
+For detailed instructions on obtaining your credentials, see [Credential Setup](#credential-setup)
 
 ---
 
