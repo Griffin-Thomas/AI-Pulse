@@ -1,6 +1,6 @@
 [package]
 name = "ai-pulse"
-version = "0.13.0"
+version = "0.14.0"
 description = "Monitor AI service usage quotas for Claude"
 authors = ["Griffin Thomas"]
 license = "MIT"

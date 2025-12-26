@@ -184,18 +184,18 @@ Deferred until Google provides a simpler usage API or community demand justifies
 - [x] Implement global keyboard shortcut to show/hide window (configurable)
 - [x] Add keyboard shortcut to copy current usage as text
 - [x] Quick share usage stats (copy to clipboard as formatted text)
-- [ ] Add context menu to usage cards with actions
+- [x] Add context menu to usage cards with actions
 
 ### 6.4 Notification Improvements
 - [x] Add configurable notification thresholds (not just 50/75/90%)
-- [ ] Implement "Do Not Disturb" schedule (e.g., mute during focus hours)
-- [ ] Show notification preview in settings
+- [x] Implement "Do Not Disturb" schedule (e.g., mute during focus hours)
+- [x] Show notification preview in settings
 
 ### 6.5 Visual Polish
 - [x] Add smooth animations to progress rings
 - [x] Implement skeleton loading states
-- [ ] Add confetti animation when usage resets
-- [ ] Add compact/minimal view mode (smaller window)
+- [x] Add confetti animation when usage resets
+- [x] Add compact/minimal view mode (smaller window)
 
 ---
 

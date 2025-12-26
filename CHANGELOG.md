@@ -7,12 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-- Fixed TypeScript errors in test files (missing `globalShortcut` property in mock AppSettings)
+## [0.14.0] - 2025-12-26
 
-### Changed
-- Added pre-release checklist to RELEASE.md requiring local build/test verification
-- Updated CLAUDE.md quality checklist with test and build requirements
+### Added
+- Context menu on usage cards (right-click) with Copy, Refresh, and Open Provider actions
+- Do Not Disturb schedule for notifications
+  - Enable/disable DND mode in Settings
+  - Configure quiet hours (e.g., 22:00 to 08:00)
+  - Notifications are suppressed during DND window
+- Notification preview button in Settings to test how notifications appear
+- Confetti celebration animation when usage limits reset
+- Compact view mode for smaller usage cards (toggle in Settings)
+
+### Fixed
+- macOS auto-updater now works correctly (added `app` to bundle targets for updater artifacts)
 
 ## [0.13.0] - 2025-12-26
 

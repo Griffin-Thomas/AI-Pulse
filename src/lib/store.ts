@@ -56,11 +56,15 @@ const defaultSettings: AppSettings = {
   refreshInterval: 300,
   trayDisplayLimit: "highest",
   globalShortcut: null,
+  compactView: false,
   notifications: {
     enabled: true,
     thresholds: [50, 75, 90],
     notifyOnReset: true,
     notifyOnExpiry: true,
+    dndEnabled: false,
+    dndStartTime: "22:00",
+    dndEndTime: "08:00",
   },
   providers: [
     { id: "claude", enabled: true, credentials: {} },

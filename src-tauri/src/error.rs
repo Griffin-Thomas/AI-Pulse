@@ -17,6 +17,9 @@ pub enum AppError {
 
     #[error("Rate limited: {0}")]
     RateLimit(String),
+
+    #[error("Notification error: {0}")]
+    Notification(String),
 }
 
 #[derive(Debug, Error)]

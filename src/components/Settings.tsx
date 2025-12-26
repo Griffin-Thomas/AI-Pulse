@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, Save, Trash2, Eye, EyeOff, Loader2, Check, AlertTriangle, Clock, Wifi } from "lucide-react";
+import { X, Save, Trash2, Eye, EyeOff, Loader2, Check, AlertTriangle, Clock, Wifi, Bell } from "lucide-react";
 import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {
   setRefreshInterval as setSchedulerInterval,
   listProviders,
   testConnection,
+  sendTestNotification,
   type Credentials,
   type AppSettings,
   type TestConnectionResult,
@@ -630,11 +631,56 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
                 </p>
               </div>
 
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="compact-view">Compact view</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Show smaller usage cards for a minimal look
+                  </p>
+                </div>
+                <button
+                  id="compact-view"
+                  role="switch"
+                  aria-checked={settings?.compactView ?? false}
+                  onClick={() => handleSettingChange("compactView", !settings?.compactView)}
+                  className={`
+                    relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent
+                    transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+                    ${settings?.compactView ? "bg-primary" : "bg-input"}
+                  `}
+                >
+                  <span
+                    className={`
+                      pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-background shadow-lg ring-0
+                      transition-transform
+                      ${settings?.compactView ? "translate-x-5" : "translate-x-0"}
+                    `}
+                  />
+                </button>
+              </div>
+
             </div>
 
             {/* Notification Settings */}
             <div className="pt-4 border-t space-y-4">
-              <h3 className="text-sm font-medium">Notifications</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">Notifications</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await sendTestNotification();
+                    } catch (err) {
+                      console.error("Failed to send test notification:", err);
+                    }
+                  }}
+                  className="h-7 text-xs"
+                >
+                  <Bell className="h-3 w-3 mr-1" />
+                  Preview
+                </Button>
+              </div>
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -775,6 +821,81 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
                         `}
                       />
                     </button>
+                  </div>
+
+                  {/* Do Not Disturb */}
+                  <div className="pt-3 border-t space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="dnd-enabled">Do Not Disturb</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Mute notifications during scheduled hours
+                        </p>
+                      </div>
+                      <button
+                        id="dnd-enabled"
+                        role="switch"
+                        aria-checked={settings.notifications.dndEnabled}
+                        onClick={() => {
+                          const newNotifications = {
+                            ...settings.notifications,
+                            dndEnabled: !settings.notifications.dndEnabled,
+                          };
+                          handleSettingChange("notifications", newNotifications);
+                        }}
+                        className={`
+                          relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent
+                          transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+                          ${settings.notifications.dndEnabled ? "bg-primary" : "bg-input"}
+                        `}
+                      >
+                        <span
+                          className={`
+                            pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-background shadow-lg ring-0
+                            transition-transform
+                            ${settings.notifications.dndEnabled ? "translate-x-5" : "translate-x-0"}
+                          `}
+                        />
+                      </button>
+                    </div>
+
+                    {settings.notifications.dndEnabled && (
+                      <div className="flex gap-3 items-center">
+                        <div className="flex-1 space-y-1">
+                          <Label htmlFor="dnd-start" className="text-xs">From</Label>
+                          <Input
+                            id="dnd-start"
+                            type="time"
+                            value={settings.notifications.dndStartTime ?? "22:00"}
+                            onChange={(e) => {
+                              const newNotifications = {
+                                ...settings.notifications,
+                                dndStartTime: e.target.value,
+                              };
+                              handleSettingChange("notifications", newNotifications);
+                            }}
+                            className="h-9"
+                          />
+                        </div>
+                        <span className="text-muted-foreground pt-5">to</span>
+                        <div className="flex-1 space-y-1">
+                          <Label htmlFor="dnd-end" className="text-xs">Until</Label>
+                          <Input
+                            id="dnd-end"
+                            type="time"
+                            value={settings.notifications.dndEndTime ?? "08:00"}
+                            onChange={(e) => {
+                              const newNotifications = {
+                                ...settings.notifications,
+                                dndEndTime: e.target.value,
+                              };
+                              handleSettingChange("notifications", newNotifications);
+                            }}
+                            className="h-9"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               )}

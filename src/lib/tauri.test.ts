@@ -189,11 +189,15 @@ describe('Tauri API Integration', () => {
         refreshInterval: 300,
         trayDisplayLimit: 'highest',
         globalShortcut: null,
+        compactView: false,
         notifications: {
           enabled: true,
           thresholds: [50, 75, 90],
           notifyOnReset: true,
           notifyOnExpiry: true,
+          dndEnabled: false,
+          dndStartTime: "22:00",
+          dndEndTime: "08:00",
         },
         providers: [
           { id: 'claude', enabled: true, credentials: {} },
@@ -221,11 +225,15 @@ describe('Tauri API Integration', () => {
         refreshInterval: 60,
         trayDisplayLimit: 'five_hour',
         globalShortcut: 'CommandOrControl+Shift+A',
+        compactView: true,
         notifications: {
           enabled: true,
           thresholds: [50, 75, 90],
           notifyOnReset: true,
           notifyOnExpiry: true,
+          dndEnabled: false,
+          dndStartTime: "22:00",
+          dndEndTime: "08:00",
         },
         providers: [],
       }

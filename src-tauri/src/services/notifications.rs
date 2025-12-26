@@ -1,9 +1,9 @@
-use crate::models::{AppSettings, UsageData, UsageLimit};
+use crate::models::{AppSettings, NotificationSettings, UsageData, UsageLimit};
 use crate::services::SettingsService;
-use chrono::{Duration, Utc};
+use chrono::{Duration, Local, NaiveTime, Utc};
 use std::collections::HashSet;
 use std::sync::Mutex;
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 use tauri_plugin_notification::NotificationExt;
 
 /// Tracks which notifications have been sent to avoid duplicates
@@ -178,6 +178,9 @@ impl NotificationService {
                         state.clear_threshold(&limit.id, thresh);
                     }
 
+                    // Emit event for frontend confetti animation
+                    let _ = app.emit("usage-reset", &limit.id);
+
                     log::info!("Sent reset notification for {}", limit.id);
                 }
             }
@@ -238,8 +241,53 @@ impl NotificationService {
         );
     }
 
+    /// Check if currently in Do Not Disturb time window
+    fn is_dnd_active(settings: &NotificationSettings) -> bool {
+        if !settings.dnd_enabled {
+            return false;
+        }
+
+        let (start_str, end_str) = match (&settings.dnd_start_time, &settings.dnd_end_time) {
+            (Some(s), Some(e)) => (s.as_str(), e.as_str()),
+            _ => return false,
+        };
+
+        let start = match NaiveTime::parse_from_str(start_str, "%H:%M") {
+            Ok(t) => t,
+            Err(_) => return false,
+        };
+
+        let end = match NaiveTime::parse_from_str(end_str, "%H:%M") {
+            Ok(t) => t,
+            Err(_) => return false,
+        };
+
+        let now = Local::now().time();
+
+        // Handle overnight DND (e.g., 22:00 to 08:00)
+        if start > end {
+            // DND spans midnight: active if now >= start OR now < end
+            now >= start || now < end
+        } else {
+            // DND within same day: active if now >= start AND now < end
+            now >= start && now < end
+        }
+    }
+
     /// Send a notification using the Tauri notification plugin
     fn send_notification(app: &AppHandle, title: &str, body: &str) -> bool {
+        // Check DND before sending
+        if let Ok(settings) = SettingsService::get(app) {
+            if Self::is_dnd_active(&settings.notifications) {
+                log::debug!(
+                    "Notification suppressed (DND active): {} - {}",
+                    title,
+                    body
+                );
+                return false;
+            }
+        }
+
         match app
             .notification()
             .builder()

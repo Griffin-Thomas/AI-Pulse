@@ -19,8 +19,8 @@ use commands::{
     fetch_usage, force_refresh, get_credentials, get_history_metadata, get_retention_policy,
     get_scheduler_status, get_session_status, get_settings, get_usage_stats, has_credentials,
     list_providers, query_history, resume_scheduler, save_credentials, save_settings,
-    set_refresh_interval, set_retention_policy, start_scheduler, stop_scheduler, test_connection,
-    validate_credentials,
+    send_test_notification, set_refresh_interval, set_retention_policy, start_scheduler,
+    stop_scheduler, test_connection, validate_credentials,
 };
 use services::{HistoryService, SchedulerService, SchedulerState};
 
@@ -49,6 +49,7 @@ pub fn run() {
             // Settings commands
             get_settings,
             save_settings,
+            send_test_notification,
             // Usage commands
             fetch_usage,
             validate_credentials,

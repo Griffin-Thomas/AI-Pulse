@@ -77,6 +77,10 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
   return invoke("save_settings", { settings });
 }
 
+export async function sendTestNotification(): Promise<void> {
+  return invoke("send_test_notification");
+}
+
 // Scheduler commands
 export interface SchedulerStatus {
   running: boolean;
@@ -129,6 +133,7 @@ export interface AppSettings {
   refreshInterval: 60 | 180 | 300 | 600;
   trayDisplayLimit: TrayDisplayLimit;
   globalShortcut: string | null;
+  compactView: boolean;
   notifications: NotificationSettings;
   providers: ProviderConfig[];
 }
@@ -138,6 +143,9 @@ export interface NotificationSettings {
   thresholds: number[];
   notifyOnReset: boolean;
   notifyOnExpiry: boolean;
+  dndEnabled: boolean;
+  dndStartTime: string | null;
+  dndEndTime: string | null;
 }
 
 export interface ProviderConfig {

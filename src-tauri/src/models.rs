@@ -100,6 +100,9 @@ pub struct AppSettings {
     /// Global keyboard shortcut to show/hide the window (e.g., "CommandOrControl+Shift+A")
     #[serde(default)]
     pub global_shortcut: Option<String>,
+    /// Whether to show compact view mode (smaller cards)
+    #[serde(default)]
+    pub compact_view: bool,
     pub notifications: NotificationSettings,
     pub providers: Vec<ProviderConfig>,
 }
@@ -115,6 +118,15 @@ pub struct NotificationSettings {
     pub thresholds: Vec<u32>,
     pub notify_on_reset: bool,
     pub notify_on_expiry: bool,
+    /// Do Not Disturb mode - when enabled, notifications are muted during the scheduled time
+    #[serde(default)]
+    pub dnd_enabled: bool,
+    /// Start time for DND in HH:MM format (e.g., "22:00")
+    #[serde(default)]
+    pub dnd_start_time: Option<String>,
+    /// End time for DND in HH:MM format (e.g., "08:00")
+    #[serde(default)]
+    pub dnd_end_time: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -227,11 +239,15 @@ impl Default for AppSettings {
             refresh_interval: 300,
             tray_display_limit: "highest".to_string(),
             global_shortcut: None,
+            compact_view: false,
             notifications: NotificationSettings {
                 enabled: true,
                 thresholds: vec![50, 75, 90],
                 notify_on_reset: true,
                 notify_on_expiry: true,
+                dnd_enabled: false,
+                dnd_start_time: Some("22:00".to_string()),
+                dnd_end_time: Some("08:00".to_string()),
             },
             providers: vec![
                 ProviderConfig {
