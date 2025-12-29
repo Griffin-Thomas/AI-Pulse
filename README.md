@@ -55,7 +55,7 @@ Download the `.AppImage` from [Releases](https://github.com/Griffin-Thomas/AI-Pu
 
 You can add multiple accounts to track usage across different Claude subscriptions.
 
-For detailed instructions, see the [User Guide](docs/user-guide.md).
+For detailed instructions, see the [User Guide](docs/user-guide.md). See the [Changelog](CHANGELOG.md) for version history.
 
 ## Tech Stack
 
