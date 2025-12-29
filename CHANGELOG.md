@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0] - 2025-12-29
+
+### Added
+- Logo and badges to README (release version, license, platform)
+- Clickable logo in About dialog that opens GitHub repository
+
+### Changed
+- App icon heartbeat is now sharper and larger
+- About dialog now uses the actual app icon image instead of inline SVG
+
+### Fixed
+- "Buy Me a Coffee", "View on GitHub", and logo click buttons now work correctly
+  - Added missing `opener:allow-default-urls` permission
+  - Installed `@tauri-apps/plugin-opener` frontend package
+  - Updated imports to use `openUrl` from the correct plugin
+
 ## [0.15.0] - 2025-12-29
 
 ### Added

@@ -117,28 +117,37 @@ function drawIcon(ctx, size) {
   ctx.fillStyle = innerGlow;
   ctx.fill();
 
-  // Draw pulse wave (ECG-like line)
-  const waveHeight = pulseRadius * 0.6;
-  const waveWidth = pulseRadius * 1.6;
+  // Draw pulse wave (ECG-like line) - Sharp version matching About component
+  const waveHeight = pulseRadius * 0.9;
+  const waveWidth = pulseRadius * 2.2;
   const waveY = center;
   const waveStartX = center - waveWidth / 2;
 
   ctx.beginPath();
   ctx.moveTo(waveStartX, waveY);
-  // Flat start
+  // Flat start (0% to 20%)
   ctx.lineTo(waveStartX + waveWidth * 0.2, waveY);
-  // Small dip
-  ctx.lineTo(waveStartX + waveWidth * 0.25, waveY + waveHeight * 0.15);
-  // Sharp peak up
-  ctx.lineTo(waveStartX + waveWidth * 0.35, waveY - waveHeight * 0.8);
-  // Sharp valley
-  ctx.lineTo(waveStartX + waveWidth * 0.45, waveY + waveHeight * 0.3);
-  // Peak
-  ctx.lineTo(waveStartX + waveWidth * 0.55, waveY - waveHeight * 0.4);
-  // Return to baseline
-  ctx.lineTo(waveStartX + waveWidth * 0.65, waveY);
-  // Flat end
+  // Sharp spike up (20% to 34%)
+  ctx.lineTo(waveStartX + waveWidth * 0.34, waveY - waveHeight * 0.6);
+  // Sharp spike down below baseline (34% to 50%)
+  ctx.lineTo(waveStartX + waveWidth * 0.5, waveY + waveHeight * 0.4);
+  // Small peak up (50% to 66%)
+  ctx.lineTo(waveStartX + waveWidth * 0.66, waveY - waveHeight * 0.2);
+  // Return to baseline (66% to 80%)
+  ctx.lineTo(waveStartX + waveWidth * 0.8, waveY);
+  // Flat end (80% to 100%)
   ctx.lineTo(waveStartX + waveWidth, waveY);
+
+  /* OLD PULSE WAVE (softer, more complex):
+  ctx.moveTo(waveStartX, waveY);
+  ctx.lineTo(waveStartX + waveWidth * 0.2, waveY);
+  ctx.lineTo(waveStartX + waveWidth * 0.25, waveY + waveHeight * 0.15);
+  ctx.lineTo(waveStartX + waveWidth * 0.35, waveY - waveHeight * 0.8);
+  ctx.lineTo(waveStartX + waveWidth * 0.45, waveY + waveHeight * 0.3);
+  ctx.lineTo(waveStartX + waveWidth * 0.55, waveY - waveHeight * 0.4);
+  ctx.lineTo(waveStartX + waveWidth * 0.65, waveY);
+  ctx.lineTo(waveStartX + waveWidth, waveY);
+  */
 
   // Pulse wave gradient
   const pulseGradient = ctx.createLinearGradient(

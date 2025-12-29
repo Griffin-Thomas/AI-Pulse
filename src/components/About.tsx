@@ -3,8 +3,9 @@ import { X, Coffee, RefreshCw, CheckCircle, Download, ExternalLink } from "lucid
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { getVersion } from "@tauri-apps/api/app";
-import { open } from "@tauri-apps/plugin-shell";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { Button } from "@/components/ui/button";
+import appIcon from "../../src-tauri/icons/icon.png";
 
 interface AboutProps {
   isOpen: boolean;
@@ -92,7 +93,7 @@ export function About({ isOpen, onClose }: AboutProps) {
 
   const openBuyMeACoffee = useCallback(async () => {
     try {
-      await open("https://buymeacoffee.com/griffinthomas");
+      await openUrl("https://buymeacoffee.com/griffinthomas");
     } catch (err) {
       console.error("Failed to open link:", err);
     }
@@ -100,7 +101,7 @@ export function About({ isOpen, onClose }: AboutProps) {
 
   const openGitHub = useCallback(async () => {
     try {
-      await open("https://github.com/Griffin-Thomas/AI-Pulse");
+      await openUrl("https://github.com/Griffin-Thomas/AI-Pulse");
     } catch (err) {
       console.error("Failed to open link:", err);
     }
@@ -129,46 +130,17 @@ export function About({ isOpen, onClose }: AboutProps) {
         {/* Content */}
         <div className="p-6 text-center">
           {/* App Icon */}
-          <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">
-            <svg
-              viewBox="0 0 100 100"
-              className="w-12 h-12"
-            >
-              {/* Progress ring background */}
-              <circle
-                cx="50"
-                cy="50"
-                r="40"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="8"
-                className="text-muted-foreground/20"
-              />
-              {/* Progress ring */}
-              <circle
-                cx="50"
-                cy="50"
-                r="40"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="8"
-                strokeLinecap="round"
-                strokeDasharray="188.5 251.3"
-                transform="rotate(-90 50 50)"
-                className="text-primary"
-              />
-              {/* Heartbeat */}
-              <path
-                d="M 25 50 L 35 50 L 42 35 L 50 60 L 58 45 L 65 50 L 75 50"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-primary"
-              />
-            </svg>
-          </div>
+          <button
+            onClick={openGitHub}
+            className="mx-auto w-20 h-20 flex items-center justify-center mb-4 rounded-full hover:scale-105 transition-transform cursor-pointer"
+            title="View on GitHub"
+          >
+            <img
+              src={appIcon}
+              alt="AI Pulse"
+              className="w-20 h-20"
+            />
+          </button>
 
           {/* App name and version */}
           <h2 className="text-xl font-semibold mb-1">AI Pulse</h2>

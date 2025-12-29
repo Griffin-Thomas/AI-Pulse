@@ -1,6 +1,24 @@
-# AI Pulse
+<p align="center">
+  <img src="docs/assets/logo.png" alt="AI Pulse Logo" width="128" height="128">
+</p>
 
-A cross-platform desktop application for monitoring AI service usage quotas (Claude for now).
+<h1 align="center">AI Pulse</h1>
+
+<p align="center">
+  <strong>Monitor your AI service usage quotas from the system tray</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Griffin-Thomas/AI-Pulse/releases"><img src="https://img.shields.io/github/v/release/Griffin-Thomas/AI-Pulse?style=flat-square&color=blue" alt="Latest Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Griffin-Thomas/AI-Pulse?style=flat-square" alt="License"></a>
+  <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey?style=flat-square" alt="Platform">
+</p>
+
+<p align="center">
+  A cross-platform desktop application for monitoring AI service usage quotas (Claude for now)
+</p>
+
+---
 
 <p align="center">
   <img src="docs/assets/usage.png" alt="AI Pulse Dashboard Usage" width="400">
