@@ -55,7 +55,7 @@ Download the `.AppImage` from [Releases](https://github.com/Griffin-Thomas/AI-Pu
 
 You can add multiple accounts to track usage across different Claude subscriptions.
 
-For detailed instructions, see the [User Guide](docs/user-guide.md). See the [Changelog](CHANGELOG.md) for version history.
+For detailed instructions, see the [User Guide](docs/user-guide.md).
 
 ## Tech Stack
 
@@ -63,6 +63,8 @@ For detailed instructions, see the [User Guide](docs/user-guide.md). See the [Ch
 - **React 19 + TypeScript** - Frontend UI
 - **shadcn/ui + Tailwind CSS v4** - Components and styling
 - **Zustand** - State management
+
+See the [Changelog](CHANGELOG.md) for version history.
 
 ## Support
 
