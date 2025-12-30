@@ -1,6 +1,6 @@
 [package]
 name = "ai-pulse"
-version = "0.16.0"
+version = "0.17.0"
 description = "Monitor AI service usage quotas for Claude"
 authors = ["Griffin Thomas"]
 license = "MIT"
@@ -36,6 +36,9 @@ tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 tauri-plugin-os = "2.3.2"
 tauri-plugin-opener = "2"
+aes-gcm = "0.10"
+rand = "0.8"
+base64 = "0.22"
 
 [dev-dependencies]
 wiremock = "0.6"

@@ -24,7 +24,8 @@
 │                          └─────────────────────────────────────┘ │
 │  ┌──────────────────────────────────────────────────────────────┐│
 │  │ Storage Layer                                                ││
-│  │ - Store plugin (credentials, settings, history)              ││
+│  │ - Store plugin (settings, history)                           ││
+│  │ - AES-256-GCM encrypted credentials                          ││
 │  └──────────────────────────────────────────────────────────────┘│
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -39,7 +40,7 @@
 | State | Zustand | Lightweight, TypeScript-first |
 | Charts | Recharts | Usage visualization |
 | HTTP | tauri-plugin-http | Native client with cookie support |
-| Storage | tauri-plugin-store | Encrypted JSON for settings/credentials |
+| Storage | tauri-plugin-store | JSON storage with AES-256-GCM encrypted credentials |
 | Notifications | tauri-plugin-notification | Native desktop alerts |
 | Tray | Tauri Tray API | Menu bar/system tray |
 | Updater | tauri-plugin-updater | Auto-updates |
@@ -95,6 +96,7 @@ AI-Pulse/
 │   │   ├── services/
 │   │   │   ├── mod.rs
 │   │   │   ├── credentials.rs    # Account/credential storage
+│   │   │   ├── crypto.rs         # AES-256-GCM encryption
 │   │   │   ├── history.rs        # Usage history storage
 │   │   │   ├── notifications.rs  # Desktop notifications
 │   │   │   ├── scheduler.rs      # Background refresh

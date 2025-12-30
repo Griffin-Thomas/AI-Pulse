@@ -1,4 +1,5 @@
 mod credentials;
+mod crypto;
 mod history;
 mod notifications;
 mod scheduler;

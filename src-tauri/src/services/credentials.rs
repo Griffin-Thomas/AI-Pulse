@@ -1,5 +1,6 @@
 use crate::error::AppError;
 use crate::models::{Account, Credentials};
+use crate::services::crypto;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -9,7 +10,10 @@ use tauri_plugin_store::StoreExt;
 const STORE_FILE: &str = "credentials.json";
 const ACCOUNTS_KEY: &str = "accounts";
 const VERSION_KEY: &str = "version";
-const CURRENT_VERSION: u32 = 2;
+const CURRENT_VERSION: u32 = 3; // v3: encrypted credentials
+
+/// Prefix to identify encrypted values
+const ENCRYPTED_PREFIX: &str = "enc:v1:";
 
 /// Storage format for credential store (v2)
 /// This struct documents the storage schema but is not directly constructed.
@@ -23,6 +27,74 @@ pub struct CredentialStore {
 pub struct CredentialService;
 
 impl CredentialService {
+    /// Encrypt sensitive credential fields
+    fn encrypt_credentials(credentials: &Credentials) -> Credentials {
+        Credentials {
+            org_id: credentials.org_id.clone(),
+            session_key: credentials.session_key.as_ref().map(|key| {
+                if key.starts_with(ENCRYPTED_PREFIX) {
+                    // Already encrypted
+                    key.clone()
+                } else {
+                    match crypto::encrypt(key) {
+                        Ok(encrypted) => format!("{}{}", ENCRYPTED_PREFIX, encrypted),
+                        Err(e) => {
+                            log::error!("Failed to encrypt session_key: {}", e);
+                            key.clone() // Fall back to plaintext on error
+                        }
+                    }
+                }
+            }),
+            api_key: credentials.api_key.as_ref().map(|key| {
+                if key.starts_with(ENCRYPTED_PREFIX) {
+                    key.clone()
+                } else {
+                    match crypto::encrypt(key) {
+                        Ok(encrypted) => format!("{}{}", ENCRYPTED_PREFIX, encrypted),
+                        Err(e) => {
+                            log::error!("Failed to encrypt api_key: {}", e);
+                            key.clone()
+                        }
+                    }
+                }
+            }),
+        }
+    }
+
+    /// Decrypt sensitive credential fields
+    fn decrypt_credentials(credentials: &Credentials) -> Credentials {
+        Credentials {
+            org_id: credentials.org_id.clone(),
+            session_key: credentials.session_key.as_ref().map(|key| {
+                if let Some(encrypted) = key.strip_prefix(ENCRYPTED_PREFIX) {
+                    match crypto::decrypt(encrypted) {
+                        Ok(decrypted) => decrypted,
+                        Err(e) => {
+                            log::error!("Failed to decrypt session_key: {}", e);
+                            key.clone() // Return as-is if decryption fails
+                        }
+                    }
+                } else {
+                    // Not encrypted (legacy or plaintext)
+                    key.clone()
+                }
+            }),
+            api_key: credentials.api_key.as_ref().map(|key| {
+                if let Some(encrypted) = key.strip_prefix(ENCRYPTED_PREFIX) {
+                    match crypto::decrypt(encrypted) {
+                        Ok(decrypted) => decrypted,
+                        Err(e) => {
+                            log::error!("Failed to decrypt api_key: {}", e);
+                            key.clone()
+                        }
+                    }
+                } else {
+                    key.clone()
+                }
+            }),
+        }
+    }
+
     // =========================================================================
     // Account-based API (v2)
     // =========================================================================
@@ -39,11 +111,47 @@ impl CredentialService {
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or(1);
 
-        if version < CURRENT_VERSION {
-            log::info!("Migrating credentials from v{} to v{}", version, CURRENT_VERSION);
+        if version < 2 {
+            log::info!("Migrating credentials from v{} to v2", version);
             Self::migrate_v1_to_v2(app)?;
         }
 
+        if version < 3 {
+            log::info!("Migrating credentials from v2 to v3 (encrypting)");
+            Self::migrate_v2_to_v3(app)?;
+        }
+
+        Ok(())
+    }
+
+    /// Migrate from v2 (plaintext) to v3 (encrypted credentials)
+    fn migrate_v2_to_v3(app: &AppHandle) -> Result<(), AppError> {
+        let store = app
+            .store(STORE_FILE)
+            .map_err(|e| AppError::Store(e.to_string()))?;
+
+        let mut accounts: HashMap<String, Account> = store
+            .get(ACCOUNTS_KEY)
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .unwrap_or_default();
+
+        // Encrypt all existing credentials
+        for (_, account) in accounts.iter_mut() {
+            account.credentials = Self::encrypt_credentials(&account.credentials);
+        }
+
+        // Save encrypted accounts
+        store.set(ACCOUNTS_KEY.to_string(), serde_json::to_value(&accounts)?);
+        store.set(VERSION_KEY.to_string(), serde_json::to_value(CURRENT_VERSION)?);
+
+        // Clean up any leftover legacy keys (may exist from incomplete v1->v2 migration)
+        store.delete("claude");
+        store.delete("codex");
+        store.delete("gemini");
+
+        store.save().map_err(|e| AppError::Store(e.to_string()))?;
+
+        log::info!("Migration to v3 complete. {} accounts encrypted.", accounts.len());
         Ok(())
     }
 
@@ -88,7 +196,7 @@ impl CredentialService {
         Ok(())
     }
 
-    /// List all accounts for a provider
+    /// List all accounts for a provider (decrypts credentials)
     pub fn list_accounts(app: &AppHandle, provider: &str) -> Result<Vec<Account>, AppError> {
         Self::ensure_migrated(app)?;
 
@@ -104,12 +212,16 @@ impl CredentialService {
         let filtered: Vec<Account> = accounts
             .into_values()
             .filter(|a| a.provider == provider)
+            .map(|mut a| {
+                a.credentials = Self::decrypt_credentials(&a.credentials);
+                a
+            })
             .collect();
 
         Ok(filtered)
     }
 
-    /// Get a specific account by ID
+    /// Get a specific account by ID (decrypts credentials)
     pub fn get_account(app: &AppHandle, account_id: &str) -> Result<Option<Account>, AppError> {
         Self::ensure_migrated(app)?;
 
@@ -122,10 +234,13 @@ impl CredentialService {
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or_default();
 
-        Ok(accounts.get(account_id).cloned())
+        Ok(accounts.get(account_id).cloned().map(|mut a| {
+            a.credentials = Self::decrypt_credentials(&a.credentials);
+            a
+        }))
     }
 
-    /// Save (create or update) an account
+    /// Save (create or update) an account (encrypts credentials)
     pub fn save_account(app: &AppHandle, account: &Account) -> Result<(), AppError> {
         Self::ensure_migrated(app)?;
 
@@ -138,7 +253,10 @@ impl CredentialService {
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or_default();
 
-        accounts.insert(account.id.clone(), account.clone());
+        // Encrypt credentials before storing
+        let mut encrypted_account = account.clone();
+        encrypted_account.credentials = Self::encrypt_credentials(&account.credentials);
+        accounts.insert(account.id.clone(), encrypted_account);
 
         store.set(ACCOUNTS_KEY.to_string(), serde_json::to_value(&accounts)?);
         store.save().map_err(|e| AppError::Store(e.to_string()))?;

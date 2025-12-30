@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.0] - 2025-12-29
+
+### Added
+- Content Security Policy (CSP) to protect against XSS attacks
+- AES-256-GCM encryption for credentials stored at rest
+  - Automatic migration encrypts existing plaintext credentials on first launch
+  - Machine-derived encryption key (no user password required)
+
 ## [0.16.0] - 2025-12-29
 
 ### Added
