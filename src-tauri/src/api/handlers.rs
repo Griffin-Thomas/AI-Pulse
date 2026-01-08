@@ -141,7 +141,7 @@ pub async fn accounts(
     let mut all_accounts = Vec::new();
 
     let registry = ProviderRegistry::default();
-    for provider_id in registry.available_ids() {
+    for provider_id in registry.provider_ids() {
         match CredentialService::list_accounts(&state.app, provider_id) {
             Ok(accounts) => {
                 for account in accounts {
@@ -223,7 +223,7 @@ async fn get_all_account_statuses(
     let mut statuses = Vec::new();
 
     let registry = ProviderRegistry::default();
-    for provider_id in registry.available_ids() {
+    for provider_id in registry.provider_ids() {
         let accounts = match CredentialService::list_accounts(&state.app, provider_id) {
             Ok(accounts) => accounts,
             Err(e) => {

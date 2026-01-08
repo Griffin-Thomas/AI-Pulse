@@ -60,19 +60,6 @@ export interface UsageLimit {
   category?: string;
 }
 
-export interface ClaudeUsageResponse {
-  five_hour: LimitUsage;
-  seven_day?: LimitUsage;
-  seven_day_oauth_apps?: LimitUsage;
-  seven_day_opus?: LimitUsage;
-  seven_day_sonnet?: LimitUsage;
-}
-
-export interface LimitUsage {
-  utilization: number;
-  resets_at: string;
-}
-
 // ============================================================================
 // History Types
 // ============================================================================

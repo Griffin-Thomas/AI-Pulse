@@ -72,8 +72,6 @@ pub struct CredentialField {
 /// Registry of all available providers
 pub struct ProviderRegistry {
     providers: HashMap<String, Arc<dyn UsageProvider>>,
-    /// Metadata for blocked/planned providers (no implementation yet)
-    blocked_providers: Vec<ProviderMetadata>,
 }
 
 impl ProviderRegistry {
@@ -85,50 +83,7 @@ impl ProviderRegistry {
         let claude = ClaudeProvider::new()?;
         providers.insert(claude.id().to_string(), Arc::new(claude));
 
-        // Define blocked/planned providers for UI display
-        let blocked_providers = vec![
-            ProviderMetadata {
-                id: "chatgpt".to_string(),
-                name: "ChatGPT".to_string(),
-                status: ProviderStatus::Blocked,
-                required_credentials: vec![
-                    CredentialField {
-                        key: "session_token".to_string(),
-                        label: "Session Token".to_string(),
-                        placeholder: "__Secure-next-auth.session-token cookie".to_string(),
-                        is_secret: true,
-                    },
-                ],
-                description: Some(
-                    "Blocked: OpenAI does not expose a usage tracking API. \
-                     Only message cap limits are available, not current usage."
-                        .to_string(),
-                ),
-            },
-            ProviderMetadata {
-                id: "gemini".to_string(),
-                name: "Gemini".to_string(),
-                status: ProviderStatus::Blocked,
-                required_credentials: vec![
-                    CredentialField {
-                        key: "project_id".to_string(),
-                        label: "GCP Project ID".to_string(),
-                        placeholder: "my-gcp-project".to_string(),
-                        is_secret: false,
-                    },
-                ],
-                description: Some(
-                    "Blocked: Requires complex Google Cloud Monitoring API setup. \
-                     See docs/api-integration.md for details."
-                        .to_string(),
-                ),
-            },
-        ];
-
-        Ok(Self {
-            providers,
-            blocked_providers,
-        })
+        Ok(Self { providers })
     }
 
     /// Get a provider by ID
@@ -136,16 +91,14 @@ impl ProviderRegistry {
         self.providers.get(id).cloned()
     }
 
-    /// Get all available (functional) provider IDs
-    #[allow(dead_code)]
-    pub fn available_ids(&self) -> Vec<&str> {
-        self.providers.keys().map(|s| s.as_str()).collect()
+    /// Get IDs of all registered providers
+    pub fn provider_ids(&self) -> impl Iterator<Item = &str> {
+        self.providers.keys().map(|s| s.as_str())
     }
 
-    /// Get metadata for all providers (including blocked ones)
+    /// Get metadata for all available providers
     pub fn all_metadata(&self) -> Vec<ProviderMetadata> {
-        let mut metadata: Vec<ProviderMetadata> = self
-            .providers
+        self.providers
             .values()
             .map(|p| {
                 let mut meta = p.metadata();
@@ -173,22 +126,7 @@ impl ProviderRegistry {
                 }
                 meta
             })
-            .collect();
-
-        // Add blocked providers
-        metadata.extend(self.blocked_providers.clone());
-
-        // Sort: available first, then blocked, then planned
-        metadata.sort_by(|a, b| {
-            let order = |s: &ProviderStatus| match s {
-                ProviderStatus::Available => 0,
-                ProviderStatus::Blocked => 1,
-                ProviderStatus::Planned => 2,
-            };
-            order(&a.status).cmp(&order(&b.status))
-        });
-
-        metadata
+            .collect()
     }
 }
 
@@ -210,29 +148,13 @@ mod tests {
     }
 
     #[test]
-    fn test_available_ids() {
-        let registry = ProviderRegistry::new().unwrap();
-        let ids = registry.available_ids();
-        assert!(ids.contains(&"claude"));
-    }
-
-    #[test]
     fn test_all_metadata() {
         let registry = ProviderRegistry::new().unwrap();
         let metadata = registry.all_metadata();
 
-        // Should have Claude (available), ChatGPT (blocked), Gemini (blocked)
-        assert!(metadata.len() >= 3);
-
-        // Claude should be first (available)
+        // Should have Claude
+        assert_eq!(metadata.len(), 1);
         assert_eq!(metadata[0].id, "claude");
         assert_eq!(metadata[0].status, ProviderStatus::Available);
-
-        // ChatGPT and Gemini should be blocked
-        let chatgpt = metadata.iter().find(|m| m.id == "chatgpt").unwrap();
-        assert_eq!(chatgpt.status, ProviderStatus::Blocked);
-
-        let gemini = metadata.iter().find(|m| m.id == "gemini").unwrap();
-        assert_eq!(gemini.status, ProviderStatus::Blocked);
     }
 }

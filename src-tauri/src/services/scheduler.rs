@@ -317,19 +317,7 @@ impl SchedulerService {
 
     /// Fetch usage for all accounts and emit events
     async fn fetch_all_accounts(app: &AppHandle, state: &SchedulerState) {
-        // Try to acquire the fetch lock (non-blocking)
-        let _lock = match state.fetch_lock.try_lock() {
-            Ok(lock) => lock,
-            Err(_) => {
-                log::debug!("Fetch already in progress, skipping");
-                return;
-            }
-        };
-
-        // Drop the lock before any async operations to avoid Send issues
-        drop(_lock);
-
-        // Re-acquire the lock for the actual fetch
+        // Acquire the fetch lock to prevent concurrent fetches
         let _lock = state.fetch_lock.lock().await;
 
         // Check rate limit

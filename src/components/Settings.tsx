@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, Loader2, Check, AlertTriangle, Clock, Bell, Terminal, Copy, Eye, EyeOff } from "lucide-react";
+import { X, Check, AlertTriangle, Clock, Bell, Terminal, Copy, Eye, EyeOff } from "lucide-react";
 import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { AccountManager } from "@/components/AccountManager";
 import {
   getSettings,
@@ -304,31 +305,12 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
                     Automatically start when you log in
                   </p>
                 </div>
-                <button
+                <ToggleSwitch
                   id="launch-at-startup"
-                  role="switch"
-                  aria-checked={launchAtStartup}
-                  disabled={isTogglingAutostart}
-                  onClick={handleAutoStartToggle}
-                  className={`
-                    relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent
-                    transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-                    disabled:cursor-not-allowed disabled:opacity-50
-                    ${launchAtStartup ? "bg-primary" : "bg-input"}
-                  `}
-                >
-                  <span
-                    className={`
-                      pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-background shadow-lg ring-0
-                      transition-transform
-                      ${launchAtStartup ? "translate-x-5" : "translate-x-0"}
-                    `}
-                  >
-                    {isTogglingAutostart && (
-                      <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                    )}
-                  </span>
-                </button>
+                  checked={launchAtStartup}
+                  onCheckedChange={handleAutoStartToggle}
+                  loading={isTogglingAutostart}
+                />
               </div>
 
               <div className="space-y-2">
@@ -442,11 +424,10 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
                     Get alerted when usage reaches thresholds
                   </p>
                 </div>
-                <button
+                <ToggleSwitch
                   id="notifications-enabled"
-                  role="switch"
-                  aria-checked={settings?.notifications.enabled ?? true}
-                  onClick={() => {
+                  checked={settings?.notifications.enabled ?? true}
+                  onCheckedChange={() => {
                     if (!settings) return;
                     const newNotifications = {
                       ...settings.notifications,
@@ -454,20 +435,7 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
                     };
                     handleSettingChange("notifications", newNotifications);
                   }}
-                  className={`
-                    relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent
-                    transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-                    ${settings?.notifications.enabled ? "bg-primary" : "bg-input"}
-                  `}
-                >
-                  <span
-                    className={`
-                      pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-background shadow-lg ring-0
-                      transition-transform
-                      ${settings?.notifications.enabled ? "translate-x-5" : "translate-x-0"}
-                    `}
-                  />
-                </button>
+                />
               </div>
 
               {settings?.notifications.enabled && (
@@ -515,31 +483,17 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
                         Alert when usage limits reset
                       </p>
                     </div>
-                    <button
+                    <ToggleSwitch
                       id="notify-reset"
-                      role="switch"
-                      aria-checked={settings.notifications.notifyOnReset}
-                      onClick={() => {
+                      checked={settings.notifications.notifyOnReset}
+                      onCheckedChange={() => {
                         const newNotifications = {
                           ...settings.notifications,
                           notifyOnReset: !settings.notifications.notifyOnReset,
                         };
                         handleSettingChange("notifications", newNotifications);
                       }}
-                      className={`
-                        relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent
-                        transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-                        ${settings.notifications.notifyOnReset ? "bg-primary" : "bg-input"}
-                      `}
-                    >
-                      <span
-                        className={`
-                          pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-background shadow-lg ring-0
-                          transition-transform
-                          ${settings.notifications.notifyOnReset ? "translate-x-5" : "translate-x-0"}
-                        `}
-                      />
-                    </button>
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -549,31 +503,17 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
                         Alert when credentials need refresh
                       </p>
                     </div>
-                    <button
+                    <ToggleSwitch
                       id="notify-expiry"
-                      role="switch"
-                      aria-checked={settings.notifications.notifyOnExpiry}
-                      onClick={() => {
+                      checked={settings.notifications.notifyOnExpiry}
+                      onCheckedChange={() => {
                         const newNotifications = {
                           ...settings.notifications,
                           notifyOnExpiry: !settings.notifications.notifyOnExpiry,
                         };
                         handleSettingChange("notifications", newNotifications);
                       }}
-                      className={`
-                        relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent
-                        transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-                        ${settings.notifications.notifyOnExpiry ? "bg-primary" : "bg-input"}
-                      `}
-                    >
-                      <span
-                        className={`
-                          pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-background shadow-lg ring-0
-                          transition-transform
-                          ${settings.notifications.notifyOnExpiry ? "translate-x-5" : "translate-x-0"}
-                        `}
-                      />
-                    </button>
+                    />
                   </div>
 
                   {/* Do Not Disturb */}
@@ -585,31 +525,17 @@ export function Settings({ isOpen, onClose, onCredentialsSaved }: SettingsProps)
                           Mute notifications during scheduled hours
                         </p>
                       </div>
-                      <button
+                      <ToggleSwitch
                         id="dnd-enabled"
-                        role="switch"
-                        aria-checked={settings.notifications.dndEnabled}
-                        onClick={() => {
+                        checked={settings.notifications.dndEnabled}
+                        onCheckedChange={() => {
                           const newNotifications = {
                             ...settings.notifications,
                             dndEnabled: !settings.notifications.dndEnabled,
                           };
                           handleSettingChange("notifications", newNotifications);
                         }}
-                        className={`
-                          relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent
-                          transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-                          ${settings.notifications.dndEnabled ? "bg-primary" : "bg-input"}
-                        `}
-                      >
-                        <span
-                          className={`
-                            pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-background shadow-lg ring-0
-                            transition-transform
-                            ${settings.notifications.dndEnabled ? "translate-x-5" : "translate-x-0"}
-                          `}
-                        />
-                      </button>
+                      />
                     </div>
 
                     {settings.notifications.dndEnabled && (
@@ -727,25 +653,11 @@ token = "${settings.apiServerToken || ''}"`;
             Allow CLI and IDE integrations to access usage data
           </p>
         </div>
-        <button
+        <ToggleSwitch
           id="api-server-enabled"
-          role="switch"
-          aria-checked={settings.apiServerEnabled}
-          onClick={() => onSettingChange('apiServerEnabled', !settings.apiServerEnabled)}
-          className={`
-            relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent
-            transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-            ${settings.apiServerEnabled ? "bg-primary" : "bg-input"}
-          `}
-        >
-          <span
-            className={`
-              pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-background shadow-lg ring-0
-              transition-transform
-              ${settings.apiServerEnabled ? "translate-x-5" : "translate-x-0"}
-            `}
-          />
-        </button>
+          checked={settings.apiServerEnabled}
+          onCheckedChange={() => onSettingChange('apiServerEnabled', !settings.apiServerEnabled)}
+        />
       </div>
 
       {settings.apiServerEnabled && (

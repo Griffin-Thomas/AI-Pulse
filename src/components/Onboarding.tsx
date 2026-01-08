@@ -21,11 +21,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  saveCredentials,
+  saveAccount,
   testConnection,
   type Credentials,
   type TestConnectionResult,
 } from "@/lib/tauri";
+import type { Account } from "@/lib/types";
 import { open } from "@tauri-apps/plugin-shell";
 
 interface OnboardingProps {
@@ -85,7 +86,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
       if (result.success) {
         // Auto-save and proceed on success
-        await saveCredentials("claude", credentials);
+        const account: Account = {
+          id: crypto.randomUUID(),
+          name: "Default",
+          provider: "claude",
+          credentials,
+          createdAt: new Date().toISOString(),
+        };
+        await saveAccount(account);
         setTimeout(goNext, 1000); // Give user time to see success
       }
     } catch (err) {
@@ -111,7 +119,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         org_id: orgId.trim(),
         session_key: sessionKey.trim(),
       };
-      await saveCredentials("claude", credentials);
+      const account: Account = {
+        id: crypto.randomUUID(),
+        name: "Default",
+        provider: "claude",
+        credentials,
+        createdAt: new Date().toISOString(),
+      };
+      await saveAccount(account);
       goNext();
     } catch (err) {
       setTestResult({

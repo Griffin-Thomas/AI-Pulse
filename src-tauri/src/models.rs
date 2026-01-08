@@ -1,31 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-/// Provider identifier (used in Phase 4 multi-provider support)
-#[allow(dead_code)]
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[serde(rename_all = "lowercase")]
-pub enum ProviderId {
-    Claude,
-    Codex,
-}
-
-#[allow(dead_code)]
-impl ProviderId {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            ProviderId::Claude => "claude",
-            ProviderId::Codex => "codex",
-        }
-    }
-}
-
-impl std::fmt::Display for ProviderId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
-}
-
 /// Credentials for a provider
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Credentials {
@@ -36,10 +11,6 @@ pub struct Credentials {
     /// Claude: session key
     #[serde(skip_serializing_if = "Option::is_none")]
     pub session_key: Option<String>,
-
-    /// Codex: API key (future use)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub api_key: Option<String>,
 }
 
 /// Account for multi-account support
@@ -56,19 +27,6 @@ pub struct Account {
     pub credentials: Credentials,
     /// When the account was created
     pub created_at: DateTime<Utc>,
-}
-
-impl Account {
-    /// Create a new account with a generated UUID
-    pub fn new(name: String, provider: String, credentials: Credentials) -> Self {
-        Self {
-            id: uuid::Uuid::new_v4().to_string(),
-            name,
-            provider,
-            credentials,
-            created_at: Utc::now(),
-        }
-    }
 }
 
 /// Usage data returned to frontend
@@ -301,18 +259,11 @@ impl Default for AppSettings {
                 dnd_start_time: Some("22:00".to_string()),
                 dnd_end_time: Some("08:00".to_string()),
             },
-            providers: vec![
-                ProviderConfig {
-                    id: "claude".to_string(),
-                    enabled: true,
-                    credentials: std::collections::HashMap::new(),
-                },
-                ProviderConfig {
-                    id: "codex".to_string(),
-                    enabled: false,
-                    credentials: std::collections::HashMap::new(),
-                },
-            ],
+            providers: vec![ProviderConfig {
+                id: "claude".to_string(),
+                enabled: true,
+                credentials: std::collections::HashMap::new(),
+            }],
             api_server_enabled: false,
             api_server_port: 31415,
             api_server_token: None,
@@ -325,23 +276,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn provider_id_as_str() {
-        assert_eq!(ProviderId::Claude.as_str(), "claude");
-        assert_eq!(ProviderId::Codex.as_str(), "codex");
-    }
-
-    #[test]
-    fn provider_id_display() {
-        assert_eq!(format!("{}", ProviderId::Claude), "claude");
-        assert_eq!(format!("{}", ProviderId::Codex), "codex");
-    }
-
-    #[test]
     fn credentials_default() {
         let creds = Credentials::default();
         assert!(creds.org_id.is_none());
         assert!(creds.session_key.is_none());
-        assert!(creds.api_key.is_none());
     }
 
     #[test]
@@ -349,13 +287,10 @@ mod tests {
         let creds = Credentials {
             org_id: Some("org-123".to_string()),
             session_key: Some("sk-xxx".to_string()),
-            api_key: None,
         };
         let json = serde_json::to_string(&creds).unwrap();
         assert!(json.contains("org_id"));
         assert!(json.contains("session_key"));
-        // api_key should be skipped when None
-        assert!(!json.contains("api_key"));
     }
 
     #[test]
@@ -364,7 +299,6 @@ mod tests {
         let creds: Credentials = serde_json::from_str(json).unwrap();
         assert_eq!(creds.org_id, Some("org-123".to_string()));
         assert_eq!(creds.session_key, Some("sk-xxx".to_string()));
-        assert!(creds.api_key.is_none());
     }
 
     #[test]
@@ -385,7 +319,7 @@ mod tests {
         assert_eq!(settings.tray_display_limit, "highest");
         assert!(settings.notifications.enabled);
         assert_eq!(settings.notifications.thresholds, vec![50, 75, 90]);
-        assert_eq!(settings.providers.len(), 2);
+        assert_eq!(settings.providers.len(), 1);
         // API server settings
         assert!(!settings.api_server_enabled);
         assert_eq!(settings.api_server_port, 31415);

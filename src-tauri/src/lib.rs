@@ -16,16 +16,28 @@ mod providers;
 mod services;
 
 use commands::{
-    clear_history, cleanup_history, delete_account, delete_credentials, export_history_csv,
-    export_history_json, fetch_usage, fetch_usage_for_account, force_refresh, get_account,
-    get_credentials, get_history_metadata, get_retention_policy, get_scheduler_status,
-    get_session_status, get_settings, get_usage_stats, has_credentials, list_accounts,
-    list_providers, query_history, resume_scheduler, save_account, save_credentials,
-    save_settings, send_test_notification, set_refresh_interval, set_retention_policy,
-    start_scheduler, stop_scheduler, test_account_connection, test_connection,
-    validate_credentials,
+    clear_history, cleanup_history, delete_account, export_history_csv, export_history_json,
+    fetch_usage_for_account, force_refresh, get_account, get_history_metadata, get_retention_policy,
+    get_scheduler_status, get_session_status, get_settings, get_usage_stats, list_accounts,
+    list_providers, query_history, resume_scheduler, save_account, save_settings,
+    send_test_notification, set_refresh_interval, set_retention_policy, start_scheduler,
+    stop_scheduler, test_account_connection, test_connection, validate_credentials,
 };
 use services::{HistoryService, SchedulerService, SchedulerState, SettingsService};
+
+/// Helper to show the main window and optionally emit an event
+fn show_window_and_emit<T: serde::Serialize + Clone>(
+    app: &tauri::AppHandle,
+    event: Option<(&str, T)>,
+) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.set_focus();
+        if let Some((name, payload)) = event {
+            let _ = window.emit(name, payload);
+        }
+    }
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -44,11 +56,6 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .manage(Arc::new(SchedulerState::new()))
         .invoke_handler(tauri::generate_handler![
-            // Credential commands (legacy)
-            get_credentials,
-            save_credentials,
-            delete_credentials,
-            has_credentials,
             // Account commands (multi-account)
             list_accounts,
             get_account,
@@ -60,7 +67,6 @@ pub fn run() {
             save_settings,
             send_test_notification,
             // Usage commands
-            fetch_usage,
             fetch_usage_for_account,
             validate_credentials,
             test_connection,
@@ -221,33 +227,17 @@ pub fn run() {
 
             let _tray = tray_builder
                 .on_menu_event(|app, event| match event.id.as_ref() {
-                    "quit" => {
-                        app.exit(0);
-                    }
-                    "show" => {
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
-                    }
+                    "quit" => app.exit(0),
+                    "show" => show_window_and_emit(app, None::<(&str, ())>),
                     "refresh" => {
-                        // Emit refresh event to frontend
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.emit("tray-refresh", ());
                         }
                     }
                     "open-claude" => {
-                        // Open Claude.ai in default browser
                         let _ = app.opener().open_url("https://claude.ai", None::<&str>);
                     }
-                    "settings" => {
-                        // Show window and emit settings event to frontend
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                            let _ = window.emit("tray-settings", ());
-                        }
-                    }
+                    "settings" => show_window_and_emit(app, Some(("tray-settings", ()))),
                     _ => {}
                 })
                 .on_tray_icon_event(|tray, event| {
@@ -257,11 +247,7 @@ pub fn run() {
                         ..
                     } = event
                     {
-                        let app = tray.app_handle();
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
+                        show_window_and_emit(tray.app_handle(), None::<(&str, ())>);
                     }
                 })
                 .build(app)?;
@@ -271,40 +257,15 @@ pub fn run() {
             {
                 app.on_menu_event(|app, event| {
                     match event.id().as_ref() {
-                        "menu-about" => {
-                            if let Some(window) = app.get_webview_window("main") {
-                                let _ = window.show();
-                                let _ = window.set_focus();
-                                let _ = window.emit("show-about", ());
-                            }
-                        }
-                        "menu-settings" => {
-                            // Toggle settings - emit event to frontend to handle open/close
-                            if let Some(window) = app.get_webview_window("main") {
-                                let _ = window.show();
-                                let _ = window.set_focus();
-                                let _ = window.emit("toggle-settings", ());
-                            }
-                        }
+                        "menu-about" => show_window_and_emit(app, Some(("show-about", ()))),
+                        "menu-settings" => show_window_and_emit(app, Some(("toggle-settings", ()))),
                         "menu-refresh" => {
                             if let Some(window) = app.get_webview_window("main") {
                                 let _ = window.emit("tray-refresh", ());
                             }
                         }
-                        "menu-usage" => {
-                            if let Some(window) = app.get_webview_window("main") {
-                                let _ = window.show();
-                                let _ = window.set_focus();
-                                let _ = window.emit("menu-usage", ());
-                            }
-                        }
-                        "menu-analytics" => {
-                            if let Some(window) = app.get_webview_window("main") {
-                                let _ = window.show();
-                                let _ = window.set_focus();
-                                let _ = window.emit("menu-analytics", ());
-                            }
-                        }
+                        "menu-usage" => show_window_and_emit(app, Some(("menu-usage", ()))),
+                        "menu-analytics" => show_window_and_emit(app, Some(("menu-analytics", ()))),
                         _ => {}
                     }
                 });

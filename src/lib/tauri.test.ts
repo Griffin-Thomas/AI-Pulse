@@ -1,13 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { invoke } from '@tauri-apps/api/core'
 import {
-  fetchUsage,
   fetchUsageForAccount,
   validateCredentials,
-  getCredentials,
-  saveCredentials,
-  deleteCredentials,
-  hasCredentials,
   getSettings,
   saveSettings,
   getSchedulerStatus,
@@ -48,37 +43,6 @@ describe('Tauri API Integration', () => {
   // ============================================================================
   // Usage Commands
   // ============================================================================
-
-  describe('fetchUsage', () => {
-    it('calls invoke with correct command and provider', async () => {
-      const mockUsageData: UsageData = {
-        provider: 'claude',
-        accountId: 'default',
-        accountName: 'Default',
-        timestamp: '2025-01-15T12:00:00Z',
-        limits: [
-          {
-            id: 'five_hour',
-            label: '5-Hour Limit',
-            utilization: 0.45,
-            resetsAt: '2025-01-15T17:00:00Z',
-          },
-        ],
-      }
-      mockInvoke.mockResolvedValue(mockUsageData)
-
-      const result = await fetchUsage('claude')
-
-      expect(mockInvoke).toHaveBeenCalledWith('fetch_usage', { provider: 'claude' })
-      expect(result).toEqual(mockUsageData)
-    })
-
-    it('propagates errors from invoke', async () => {
-      mockInvoke.mockRejectedValue(new Error('Session expired'))
-
-      await expect(fetchUsage('claude')).rejects.toThrow('Session expired')
-    })
-  })
 
   describe('fetchUsageForAccount', () => {
     it('calls invoke with correct command and accountId', async () => {
@@ -255,79 +219,6 @@ describe('Tauri API Integration', () => {
   })
 
   // ============================================================================
-  // Credential Commands
-  // ============================================================================
-
-  describe('getCredentials', () => {
-    it('returns credentials when they exist', async () => {
-      const mockCredentials: Credentials = {
-        org_id: 'org-123',
-        session_key: 'sk-test',
-      }
-      mockInvoke.mockResolvedValue(mockCredentials)
-
-      const result = await getCredentials('claude')
-
-      expect(mockInvoke).toHaveBeenCalledWith('get_credentials', { provider: 'claude' })
-      expect(result).toEqual(mockCredentials)
-    })
-
-    it('returns null when credentials do not exist', async () => {
-      mockInvoke.mockResolvedValue(null)
-
-      const result = await getCredentials('claude')
-
-      expect(result).toBeNull()
-    })
-  })
-
-  describe('saveCredentials', () => {
-    it('saves credentials successfully', async () => {
-      mockInvoke.mockResolvedValue(undefined)
-      const credentials: Credentials = {
-        org_id: 'org-123',
-        session_key: 'sk-test',
-      }
-
-      await saveCredentials('claude', credentials)
-
-      expect(mockInvoke).toHaveBeenCalledWith('save_credentials', {
-        provider: 'claude',
-        credentials,
-      })
-    })
-  })
-
-  describe('deleteCredentials', () => {
-    it('deletes credentials successfully', async () => {
-      mockInvoke.mockResolvedValue(undefined)
-
-      await deleteCredentials('claude')
-
-      expect(mockInvoke).toHaveBeenCalledWith('delete_credentials', { provider: 'claude' })
-    })
-  })
-
-  describe('hasCredentials', () => {
-    it('returns true when credentials exist', async () => {
-      mockInvoke.mockResolvedValue(true)
-
-      const result = await hasCredentials('claude')
-
-      expect(mockInvoke).toHaveBeenCalledWith('has_credentials', { provider: 'claude' })
-      expect(result).toBe(true)
-    })
-
-    it('returns false when credentials do not exist', async () => {
-      mockInvoke.mockResolvedValue(false)
-
-      const result = await hasCredentials('claude')
-
-      expect(result).toBe(false)
-    })
-  })
-
-  // ============================================================================
   // Settings Commands
   // ============================================================================
 
@@ -350,11 +241,7 @@ describe('Tauri API Integration', () => {
           dndStartTime: "22:00",
           dndEndTime: "08:00",
         },
-        providers: [
-          { id: 'claude', enabled: true, credentials: {} },
-          { id: 'chatgpt', enabled: false, credentials: {} },
-          { id: 'gemini', enabled: false, credentials: {} },
-        ],
+        providers: [{ id: 'claude', enabled: true, credentials: {} }],
         apiServerEnabled: false,
         apiServerPort: 31415,
         apiServerToken: null,
@@ -638,7 +525,7 @@ describe('Tauri API Integration', () => {
     it('handles network errors', async () => {
       mockInvoke.mockRejectedValue(new Error('Network error'))
 
-      await expect(fetchUsage('claude')).rejects.toThrow('Network error')
+      await expect(fetchUsageForAccount('account-123')).rejects.toThrow('Network error')
     })
 
     it('handles session expiry errors', async () => {
@@ -646,7 +533,7 @@ describe('Tauri API Integration', () => {
         new Error('Session expired - please update your credentials')
       )
 
-      await expect(fetchUsage('claude')).rejects.toThrow('Session expired')
+      await expect(fetchUsageForAccount('account-123')).rejects.toThrow('Session expired')
     })
 
     it('handles rate limit errors', async () => {
@@ -654,7 +541,7 @@ describe('Tauri API Integration', () => {
         new Error('Rate limited - please wait before retrying')
       )
 
-      await expect(fetchUsage('claude')).rejects.toThrow('Rate limited')
+      await expect(fetchUsageForAccount('account-123')).rejects.toThrow('Rate limited')
     })
 
     it('handles Cloudflare blocked errors', async () => {
@@ -662,7 +549,7 @@ describe('Tauri API Integration', () => {
         new Error('Access blocked by Cloudflare - try again later')
       )
 
-      await expect(fetchUsage('claude')).rejects.toThrow('Cloudflare')
+      await expect(fetchUsageForAccount('account-123')).rejects.toThrow('Cloudflare')
     })
   })
 })
