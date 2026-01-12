@@ -18,8 +18,8 @@ mod services;
 use commands::{
     clear_history, cleanup_history, delete_account, export_history_csv, export_history_json,
     fetch_usage_for_account, force_refresh, get_account, get_history_metadata, get_retention_policy,
-    get_scheduler_status, get_session_status, get_settings, get_usage_stats, list_accounts,
-    list_providers, query_history, resume_scheduler, save_account, save_settings,
+    get_scheduler_status, get_session_status, get_settings, get_usage_stats, has_accounts,
+    list_accounts, list_providers, query_history, resume_scheduler, save_account, save_settings,
     send_test_notification, set_refresh_interval, set_retention_policy, start_scheduler,
     stop_scheduler, test_account_connection, test_connection, validate_credentials,
 };
@@ -58,6 +58,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             // Account commands (multi-account)
             list_accounts,
+            has_accounts,
             get_account,
             save_account,
             delete_account,

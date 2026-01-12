@@ -6,7 +6,7 @@ import { About } from "@/components/About";
 import { Onboarding } from "@/components/Onboarding";
 import { UpdateChecker } from "@/components/UpdateChecker";
 import { useUsageStore, useSettingsStore } from "@/lib/store";
-import { getSettings, listAccounts, resumeScheduler } from "@/lib/tauri";
+import { getSettings, hasAccounts, resumeScheduler } from "@/lib/tauri";
 import { useGlobalShortcut } from "@/hooks/useGlobalShortcut";
 
 function applyTheme(theme: "light" | "dark" | "system" | "pink") {
@@ -36,9 +36,9 @@ function App() {
   useEffect(() => {
     const initApp = async () => {
       try {
-        // Check if any accounts exist
-        const accounts = await listAccounts("claude");
-        setShowOnboarding(accounts.length === 0);
+        // Check if any accounts exist (without exposing credentials)
+        const hasAnyAccounts = await hasAccounts("claude");
+        setShowOnboarding(!hasAnyAccounts);
 
         // Load settings
         const settings = await getSettings();

@@ -13,6 +13,13 @@ pub async fn list_accounts(app: AppHandle, provider: String) -> Result<Vec<Accou
     CredentialService::list_accounts(&app, &provider)
 }
 
+/// Check if any accounts exist for a provider (without exposing credentials)
+#[tauri::command]
+pub async fn has_accounts(app: AppHandle, provider: String) -> Result<bool, AppError> {
+    log::info!("Checking if accounts exist for provider: {}", provider);
+    CredentialService::has_accounts(&app, &provider)
+}
+
 /// Get a specific account by ID
 #[tauri::command]
 pub async fn get_account(app: AppHandle, account_id: String) -> Result<Option<Account>, AppError> {

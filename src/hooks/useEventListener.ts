@@ -11,15 +11,21 @@ export function useEventListener<T>(
   deps: React.DependencyList = []
 ) {
   useEffect(() => {
+    let unmounted = false;
     let unlisten: UnlistenFn | undefined;
 
     listen<T>(eventName, (event) => {
       handler(event.payload);
     }).then((fn) => {
-      unlisten = fn;
+      if (unmounted) {
+        fn();
+      } else {
+        unlisten = fn;
+      }
     });
 
     return () => {
+      unmounted = true;
       unlisten?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

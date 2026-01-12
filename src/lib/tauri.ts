@@ -54,6 +54,10 @@ export async function listAccounts(provider: ProviderId): Promise<Account[]> {
   return invoke<Account[]>("list_accounts", { provider });
 }
 
+export async function hasAccounts(provider: ProviderId): Promise<boolean> {
+  return invoke<boolean>("has_accounts", { provider });
+}
+
 export async function getAccount(accountId: string): Promise<Account | null> {
   return invoke<Account | null>("get_account", { accountId });
 }

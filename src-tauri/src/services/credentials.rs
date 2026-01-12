@@ -237,6 +237,22 @@ impl CredentialService {
         Ok(())
     }
 
+    /// Check if any accounts exist for a provider (without decrypting credentials)
+    pub fn has_accounts(app: &AppHandle, provider: &str) -> Result<bool, AppError> {
+        Self::ensure_migrated(app)?;
+
+        let store = app
+            .store(STORE_FILE)
+            .map_err(|e| AppError::Store(e.to_string()))?;
+
+        let accounts: HashMap<String, Account> = store
+            .get(ACCOUNTS_KEY)
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .unwrap_or_default();
+
+        Ok(accounts.values().any(|a| a.provider == provider))
+    }
+
     /// Delete an account by ID
     pub fn delete_account(app: &AppHandle, account_id: &str) -> Result<(), AppError> {
         Self::ensure_migrated(app)?;
