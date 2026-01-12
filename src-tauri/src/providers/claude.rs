@@ -267,7 +267,6 @@ mod tests {
         Credentials {
             org_id: Some("test-org-123".to_string()),
             session_key: Some("sk-test-session-key".to_string()),
-            api_key: None,
         }
     }
 
@@ -447,7 +446,6 @@ mod tests {
         let credentials = Credentials {
             org_id: None,
             session_key: Some("sk-test".to_string()),
-            api_key: None,
         };
 
         let result = provider.fetch_usage(&credentials).await;
@@ -467,7 +465,6 @@ mod tests {
         let credentials = Credentials {
             org_id: Some("org-123".to_string()),
             session_key: None,
-            api_key: None,
         };
 
         let result = provider.fetch_usage(&credentials).await;
@@ -615,7 +612,6 @@ mod tests {
         let credentials = Credentials {
             org_id: None,
             session_key: Some("sk-test".to_string()),
-            api_key: None,
         };
         assert!(!provider.validate_credentials(&credentials));
     }
@@ -626,7 +622,6 @@ mod tests {
         let credentials = Credentials {
             org_id: Some("org-123".to_string()),
             session_key: None,
-            api_key: None,
         };
         assert!(!provider.validate_credentials(&credentials));
     }
@@ -637,7 +632,6 @@ mod tests {
         let credentials = Credentials {
             org_id: Some("".to_string()),
             session_key: Some("".to_string()),
-            api_key: None,
         };
         assert!(!provider.validate_credentials(&credentials));
     }

@@ -76,6 +76,15 @@ impl NotificationState {
 pub struct NotificationService;
 
 impl NotificationService {
+    /// Format a message with optional account prefix
+    fn format_with_account(account_name: &str, message: String) -> String {
+        if account_name != "Default" && !account_name.is_empty() {
+            format!("[{}] {}", account_name, message)
+        } else {
+            message
+        }
+    }
+
     /// Process usage data and send appropriate notifications
     pub fn process_usage(
         app: &AppHandle,
@@ -135,22 +144,11 @@ impl NotificationService {
 
         for &threshold in &settings.notifications.thresholds {
             if current_percent >= threshold && !state.was_threshold_notified(account_id, &limit.id, threshold) {
-                // Include account name in notification if it's not "Default"
                 let title = format!("{}% Usage Alert", threshold);
-                let body = if account_name != "Default" && !account_name.is_empty() {
-                    format!(
-                        "[{}] {} is at {}% usage",
-                        account_name,
-                        limit.label,
-                        current_percent.min(100)
-                    )
-                } else {
-                    format!(
-                        "{} is at {}% usage",
-                        limit.label,
-                        current_percent.min(100)
-                    )
-                };
+                let body = Self::format_with_account(
+                    account_name,
+                    format!("{} is at {}% usage", limit.label, current_percent.min(100)),
+                );
 
                 if Self::send_notification(app, &title, &body) {
                     state.mark_threshold_notified(account_id, &limit.id, threshold);
@@ -184,20 +182,10 @@ impl NotificationService {
                 // If usage dropped significantly (more than 50%) and was previously high
                 if prev_percent >= 50 && curr_percent < prev_percent.saturating_sub(40) {
                     let title = "Usage Reset";
-                    let body = if account_name != "Default" && !account_name.is_empty() {
-                        format!(
-                            "[{}] {} has reset! Now at {}%",
-                            account_name,
-                            limit.label,
-                            curr_percent
-                        )
-                    } else {
-                        format!(
-                            "{} has reset! Now at {}%",
-                            limit.label,
-                            curr_percent
-                        )
-                    };
+                    let body = Self::format_with_account(
+                        account_name,
+                        format!("{} has reset! Now at {}%", limit.label, curr_percent),
+                    );
 
                     Self::send_notification(app, title, &body);
                     state.clear_reset_warning(account_id, &limit.id);
@@ -246,17 +234,13 @@ impl NotificationService {
         {
             let minutes = time_until_reset.num_minutes();
             let title = "Limit Reset Soon";
-            let body = if account_name != "Default" && !account_name.is_empty() {
-                format!(
-                    "[{}] {} will reset in {} minutes (currently at {}%)",
-                    account_name, limit.label, minutes, current_percent
-                )
-            } else {
+            let body = Self::format_with_account(
+                account_name,
                 format!(
                     "{} will reset in {} minutes (currently at {}%)",
                     limit.label, minutes, current_percent
-                )
-            };
+                ),
+            );
 
             if Self::send_notification(app, title, &body) {
                 state.mark_reset_warning_sent(account_id, &limit.id);

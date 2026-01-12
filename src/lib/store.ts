@@ -157,11 +157,7 @@ const defaultSettings: AppSettings = {
     dndStartTime: "22:00",
     dndEndTime: "08:00",
   },
-  providers: [
-    { id: "claude", enabled: true, credentials: {} },
-    { id: "chatgpt", enabled: false, credentials: {} },
-    { id: "gemini", enabled: false, credentials: {} },
-  ],
+  providers: [{ id: "claude", enabled: true, credentials: {} }],
   // API Server settings
   apiServerEnabled: false,
   apiServerPort: 31415,

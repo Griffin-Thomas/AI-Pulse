@@ -2,7 +2,6 @@ use crate::error::AppError;
 use crate::models::{Account, Credentials};
 use crate::services::crypto;
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tauri::AppHandle;
 use tauri_plugin_store::StoreExt;
@@ -15,49 +14,48 @@ const CURRENT_VERSION: u32 = 3; // v3: encrypted credentials
 /// Prefix to identify encrypted values
 const ENCRYPTED_PREFIX: &str = "enc:v1:";
 
-/// Storage format for credential store (v2)
-/// This struct documents the storage schema but is not directly constructed.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[allow(dead_code)]
-pub struct CredentialStore {
-    pub version: u32,
-    pub accounts: HashMap<String, Account>,
-}
-
 pub struct CredentialService;
 
 impl CredentialService {
+    /// Encrypt a single credential field
+    fn encrypt_field(value: Option<&String>) -> Option<String> {
+        value.map(|key| {
+            if key.starts_with(ENCRYPTED_PREFIX) {
+                key.clone()
+            } else {
+                match crypto::encrypt(key) {
+                    Ok(encrypted) => format!("{}{}", ENCRYPTED_PREFIX, encrypted),
+                    Err(e) => {
+                        log::error!("Failed to encrypt field: {}", e);
+                        key.clone()
+                    }
+                }
+            }
+        })
+    }
+
+    /// Decrypt a single credential field
+    fn decrypt_field(value: Option<&String>) -> Option<String> {
+        value.map(|key| {
+            if let Some(encrypted) = key.strip_prefix(ENCRYPTED_PREFIX) {
+                match crypto::decrypt(encrypted) {
+                    Ok(decrypted) => decrypted,
+                    Err(e) => {
+                        log::error!("Failed to decrypt field: {}", e);
+                        key.clone()
+                    }
+                }
+            } else {
+                key.clone()
+            }
+        })
+    }
+
     /// Encrypt sensitive credential fields
     fn encrypt_credentials(credentials: &Credentials) -> Credentials {
         Credentials {
             org_id: credentials.org_id.clone(),
-            session_key: credentials.session_key.as_ref().map(|key| {
-                if key.starts_with(ENCRYPTED_PREFIX) {
-                    // Already encrypted
-                    key.clone()
-                } else {
-                    match crypto::encrypt(key) {
-                        Ok(encrypted) => format!("{}{}", ENCRYPTED_PREFIX, encrypted),
-                        Err(e) => {
-                            log::error!("Failed to encrypt session_key: {}", e);
-                            key.clone() // Fall back to plaintext on error
-                        }
-                    }
-                }
-            }),
-            api_key: credentials.api_key.as_ref().map(|key| {
-                if key.starts_with(ENCRYPTED_PREFIX) {
-                    key.clone()
-                } else {
-                    match crypto::encrypt(key) {
-                        Ok(encrypted) => format!("{}{}", ENCRYPTED_PREFIX, encrypted),
-                        Err(e) => {
-                            log::error!("Failed to encrypt api_key: {}", e);
-                            key.clone()
-                        }
-                    }
-                }
-            }),
+            session_key: Self::encrypt_field(credentials.session_key.as_ref()),
         }
     }
 
@@ -65,33 +63,7 @@ impl CredentialService {
     fn decrypt_credentials(credentials: &Credentials) -> Credentials {
         Credentials {
             org_id: credentials.org_id.clone(),
-            session_key: credentials.session_key.as_ref().map(|key| {
-                if let Some(encrypted) = key.strip_prefix(ENCRYPTED_PREFIX) {
-                    match crypto::decrypt(encrypted) {
-                        Ok(decrypted) => decrypted,
-                        Err(e) => {
-                            log::error!("Failed to decrypt session_key: {}", e);
-                            key.clone() // Return as-is if decryption fails
-                        }
-                    }
-                } else {
-                    // Not encrypted (legacy or plaintext)
-                    key.clone()
-                }
-            }),
-            api_key: credentials.api_key.as_ref().map(|key| {
-                if let Some(encrypted) = key.strip_prefix(ENCRYPTED_PREFIX) {
-                    match crypto::decrypt(encrypted) {
-                        Ok(decrypted) => decrypted,
-                        Err(e) => {
-                            log::error!("Failed to decrypt api_key: {}", e);
-                            key.clone()
-                        }
-                    }
-                } else {
-                    key.clone()
-                }
-            }),
+            session_key: Self::decrypt_field(credentials.session_key.as_ref()),
         }
     }
 
@@ -265,6 +237,22 @@ impl CredentialService {
         Ok(())
     }
 
+    /// Check if any accounts exist for a provider (without decrypting credentials)
+    pub fn has_accounts(app: &AppHandle, provider: &str) -> Result<bool, AppError> {
+        Self::ensure_migrated(app)?;
+
+        let store = app
+            .store(STORE_FILE)
+            .map_err(|e| AppError::Store(e.to_string()))?;
+
+        let accounts: HashMap<String, Account> = store
+            .get(ACCOUNTS_KEY)
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .unwrap_or_default();
+
+        Ok(accounts.values().any(|a| a.provider == provider))
+    }
+
     /// Delete an account by ID
     pub fn delete_account(app: &AppHandle, account_id: &str) -> Result<(), AppError> {
         Self::ensure_migrated(app)?;
@@ -285,57 +273,6 @@ impl CredentialService {
         }
 
         Ok(())
-    }
-
-    /// Check if any accounts exist for a provider
-    pub fn has_accounts(app: &AppHandle, provider: &str) -> Result<bool, AppError> {
-        let accounts = Self::list_accounts(app, provider)?;
-        Ok(!accounts.is_empty())
-    }
-
-    // =========================================================================
-    // Legacy API (for backward compatibility during transition)
-    // =========================================================================
-
-    /// Get credentials for a provider (legacy - returns first account's credentials)
-    pub fn get(app: &AppHandle, provider: &str) -> Result<Option<Credentials>, AppError> {
-        let accounts = Self::list_accounts(app, provider)?;
-        Ok(accounts.into_iter().next().map(|a| a.credentials))
-    }
-
-    /// Save credentials for a provider (legacy - creates/updates default account)
-    pub fn save(app: &AppHandle, provider: &str, credentials: &Credentials) -> Result<(), AppError> {
-        Self::ensure_migrated(app)?;
-
-        // Check if there's already an account for this provider
-        let accounts = Self::list_accounts(app, provider)?;
-
-        let account = if let Some(existing) = accounts.into_iter().next() {
-            // Update existing account's credentials
-            Account {
-                credentials: credentials.clone(),
-                ..existing
-            }
-        } else {
-            // Create new account
-            Account::new("Default".to_string(), provider.to_string(), credentials.clone())
-        };
-
-        Self::save_account(app, &account)
-    }
-
-    /// Delete credentials for a provider (legacy - deletes all accounts)
-    pub fn delete(app: &AppHandle, provider: &str) -> Result<(), AppError> {
-        let accounts = Self::list_accounts(app, provider)?;
-        for account in accounts {
-            Self::delete_account(app, &account.id)?;
-        }
-        Ok(())
-    }
-
-    /// Check if credentials exist for a provider (legacy)
-    pub fn exists(app: &AppHandle, provider: &str) -> Result<bool, AppError> {
-        Self::has_accounts(app, provider)
     }
 
     /// Validate Claude credentials format
@@ -366,7 +303,6 @@ mod tests {
         let creds = Credentials {
             org_id: Some("org-123".to_string()),
             session_key: Some("sk-ant-xxx".to_string()),
-            api_key: None,
         };
         assert!(CredentialService::validate_claude(&creds));
     }
@@ -376,7 +312,6 @@ mod tests {
         let creds = Credentials {
             org_id: None,
             session_key: Some("sk-ant-xxx".to_string()),
-            api_key: None,
         };
         assert!(!CredentialService::validate_claude(&creds));
     }
@@ -386,7 +321,6 @@ mod tests {
         let creds = Credentials {
             org_id: Some("org-123".to_string()),
             session_key: None,
-            api_key: None,
         };
         assert!(!CredentialService::validate_claude(&creds));
     }
@@ -396,7 +330,6 @@ mod tests {
         let creds = Credentials {
             org_id: Some("".to_string()),
             session_key: Some("sk-ant-xxx".to_string()),
-            api_key: None,
         };
         assert!(!CredentialService::validate_claude(&creds));
     }
@@ -406,7 +339,6 @@ mod tests {
         let creds = Credentials {
             org_id: Some("   ".to_string()),
             session_key: Some("sk-ant-xxx".to_string()),
-            api_key: None,
         };
         assert!(!CredentialService::validate_claude(&creds));
     }

@@ -1,16 +1,23 @@
-use crate::error::{AppError, ProviderError};
+use crate::error::AppError;
 use crate::models::Account;
 use crate::providers::ProviderRegistry;
 use crate::services::CredentialService;
 use tauri::AppHandle;
 
-use super::usage::TestConnectionResult;
+use super::usage::{map_provider_error_to_result, TestConnectionResult};
 
 /// List all accounts for a provider
 #[tauri::command]
 pub async fn list_accounts(app: AppHandle, provider: String) -> Result<Vec<Account>, AppError> {
     log::info!("Listing accounts for provider: {}", provider);
     CredentialService::list_accounts(&app, &provider)
+}
+
+/// Check if any accounts exist for a provider (without exposing credentials)
+#[tauri::command]
+pub async fn has_accounts(app: AppHandle, provider: String) -> Result<bool, AppError> {
+    log::info!("Checking if accounts exist for provider: {}", provider);
+    CredentialService::has_accounts(&app, &provider)
 }
 
 /// Get a specific account by ID
@@ -71,57 +78,6 @@ pub async fn test_account_connection(account: Account) -> Result<TestConnectionR
             error_message: None,
             hint: None,
         }),
-        Err(ProviderError::SessionExpired) => Ok(TestConnectionResult {
-            success: false,
-            error_code: Some("SESSION_EXPIRED".to_string()),
-            error_message: Some("Your session has expired".to_string()),
-            hint: Some("Please get a fresh session key from Claude.ai. Open DevTools → Application → Cookies → copy sessionKey.".to_string()),
-        }),
-        Err(ProviderError::CloudflareBlocked) => Ok(TestConnectionResult {
-            success: false,
-            error_code: Some("CLOUDFLARE_BLOCKED".to_string()),
-            error_message: Some("Request was blocked by Cloudflare".to_string()),
-            hint: Some("This may be a temporary issue. Please try again in a few minutes.".to_string()),
-        }),
-        Err(ProviderError::RateLimited) => Ok(TestConnectionResult {
-            success: false,
-            error_code: Some("RATE_LIMITED".to_string()),
-            error_message: Some("Too many requests".to_string()),
-            hint: Some("Please wait a moment before trying again.".to_string()),
-        }),
-        Err(ProviderError::MissingCredentials(field)) => Ok(TestConnectionResult {
-            success: false,
-            error_code: Some("MISSING_CREDENTIALS".to_string()),
-            error_message: Some(format!("Missing required field: {}", field)),
-            hint: Some("Please provide all required credentials.".to_string()),
-        }),
-        Err(ProviderError::InvalidCredentials(msg)) => Ok(TestConnectionResult {
-            success: false,
-            error_code: Some("INVALID_CREDENTIALS".to_string()),
-            error_message: Some(msg),
-            hint: Some("Please check your credentials and try again.".to_string()),
-        }),
-        Err(ProviderError::HttpError(msg)) => {
-            let hint = if msg.contains("404") {
-                Some("The Organization ID may be incorrect. Check your Claude.ai URL.".to_string())
-            } else if msg.contains("network") || msg.contains("connect") {
-                Some("Please check your internet connection.".to_string())
-            } else {
-                Some("An unexpected error occurred. Please try again.".to_string())
-            };
-
-            Ok(TestConnectionResult {
-                success: false,
-                error_code: Some("HTTP_ERROR".to_string()),
-                error_message: Some(msg),
-                hint,
-            })
-        }
-        Err(ProviderError::ParseError(msg)) => Ok(TestConnectionResult {
-            success: false,
-            error_code: Some("PARSE_ERROR".to_string()),
-            error_message: Some("Failed to parse API response".to_string()),
-            hint: Some(format!("The API response format was unexpected: {}", msg)),
-        }),
+        Err(e) => Ok(map_provider_error_to_result(e)),
     }
 }

@@ -16,10 +16,6 @@ import type {
 export type { Credentials };
 
 // Usage commands
-export async function fetchUsage(provider: ProviderId): Promise<UsageData> {
-  return invoke<UsageData>("fetch_usage", { provider });
-}
-
 export async function fetchUsageForAccount(accountId: string): Promise<UsageData> {
   return invoke<UsageData>("fetch_usage_for_account", { accountId });
 }
@@ -58,6 +54,10 @@ export async function listAccounts(provider: ProviderId): Promise<Account[]> {
   return invoke<Account[]>("list_accounts", { provider });
 }
 
+export async function hasAccounts(provider: ProviderId): Promise<boolean> {
+  return invoke<boolean>("has_accounts", { provider });
+}
+
 export async function getAccount(accountId: string): Promise<Account | null> {
   return invoke<Account | null>("get_account", { accountId });
 }
@@ -74,26 +74,6 @@ export async function testAccountConnection(
   account: Account
 ): Promise<TestConnectionResult> {
   return invoke<TestConnectionResult>("test_account_connection", { account });
-}
-
-// Credential commands
-export async function getCredentials(provider: ProviderId): Promise<Credentials | null> {
-  return invoke<Credentials | null>("get_credentials", { provider });
-}
-
-export async function saveCredentials(
-  provider: ProviderId,
-  credentials: Credentials
-): Promise<void> {
-  return invoke("save_credentials", { provider, credentials });
-}
-
-export async function deleteCredentials(provider: ProviderId): Promise<void> {
-  return invoke("delete_credentials", { provider });
-}
-
-export async function hasCredentials(provider: ProviderId): Promise<boolean> {
-  return invoke<boolean>("has_credentials", { provider });
 }
 
 // Settings commands

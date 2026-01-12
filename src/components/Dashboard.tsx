@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { listen } from "@tauri-apps/api/event";
+import { useState, useCallback } from "react";
 import { open } from "@tauri-apps/plugin-shell";
+import { useEventListener } from "@/hooks/useEventListener";
 import { RefreshCw, Settings, BarChart3, Activity, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UsageCard, UsageCardSkeleton } from "@/components/UsageCard";
@@ -81,28 +81,11 @@ export function Dashboard({ provider = "claude", onSettingsClick }: DashboardPro
   }, [provider]);
 
   // Listen for menu events from native app menu (macOS)
-  useEffect(() => {
-    const unlistenUsage = listen("menu-usage", () => {
-      setActiveTab("usage");
-    });
-    const unlistenAnalytics = listen("menu-analytics", () => {
-      setActiveTab("analytics");
-    });
-    return () => {
-      unlistenUsage.then((fn) => fn());
-      unlistenAnalytics.then((fn) => fn());
-    };
-  }, []);
+  useEventListener("menu-usage", () => setActiveTab("usage"));
+  useEventListener("menu-analytics", () => setActiveTab("analytics"));
 
   // Listen for usage reset events to show confetti
-  useEffect(() => {
-    const unlisten = listen("usage-reset", () => {
-      setShowConfetti(true);
-    });
-    return () => {
-      unlisten.then((fn) => fn());
-    };
-  }, []);
+  useEventListener("usage-reset", () => setShowConfetti(true));
 
   // Group usage by account for display
   const groupedUsage = accounts.map((account) => ({
