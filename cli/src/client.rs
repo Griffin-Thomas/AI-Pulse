@@ -130,18 +130,6 @@ impl ApiClient {
             .map_err(|e| ApiError::ParseError(e.to_string()))
     }
 
-    /// Check if the server is healthy
-    #[allow(dead_code)]
-    pub fn health(&self) -> Result<HealthResponse, ApiError> {
-        self.get("/health")
-    }
-}
-
-/// Health check response
-#[derive(Debug, serde::Deserialize)]
-pub struct HealthResponse {
-    pub status: String,
-    pub version: String,
 }
 
 /// Status response
