@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-01-11
+
+### Fixed
+- Fixed race condition in `useEventListener` hook that could leak event listeners if component unmounted before the listener promise resolved
+
+### Changed
+- App initialization now uses `has_accounts` command instead of `list_accounts` to check for existing accounts, avoiding unnecessary credential exposure to the renderer process
+
+### Removed
+- Removed dead code and reduced duplication across the codebase
+- Removed unused `health` endpoint from CLI client
+
 ## [0.18.1] - 2026-01-04
 
 ### Added
